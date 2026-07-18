@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop All Products — Shine Globe</title>
+<meta name="description" content="Browse all Shine Globe products — filter by category, price, brand and rating.">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div id="site-header"></div>
+
+<div class="breadcrumb-shine">
+  <div class="container-xl small"><a href="../index.html" class="text-muted">Home</a> / <span class="text-dark fw-semibold">Shop</span></div>
+</div>
+
+<section class="section-pad py-4">
+  <div class="container-xl">
+    <div class="row g-4">
+      <!-- Filters -->
+      <div class="col-lg-3">
+        <div class="filter-box mb-3">
+          <h6>Category</h6>
+          <div id="filterCategory"></div>
+        </div>
+        <div class="filter-box mb-3">
+          <h6>Price Range</h6>
+          <input type="range" class="form-range" id="priceRange" min="0" max="50" value="50">
+          <div class="d-flex justify-content-between small text-muted"><span>₹0</span><span id="priceVal">₹50+</span></div>
+        </div>
+        <div class="filter-box mb-3">
+          <h6>Brand</h6>
+          <div id="filterBrand" style="max-height:180px;overflow:auto;"></div>
+        </div>
+        <div class="filter-box mb-3">
+          <h6>Rating</h6>
+          <div id="filterRating"></div>
+        </div>
+        <div class="filter-box mb-3">
+          <h6>Availability</h6>
+          <div class="form-check"><input class="form-check-input" type="checkbox" id="filterStock"><label class="form-check-label" for="filterStock">In Stock Only</label></div>
+        </div>
+        <div class="filter-box">
+          <h6>Discount</h6>
+          <div class="form-check"><input class="form-check-input" type="checkbox" id="filterDiscount"><label class="form-check-label" for="filterDiscount">On Sale</label></div>
+        </div>
+        <button class="btn btn-outline-brand w-100 mt-3" id="clearFilters">Clear All Filters</button>
+      </div>
+
+      <!-- Products -->
+      <div class="col-lg-9">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+          <span class="text-muted small" id="resultsCount">Loading products...</span>
+          <div class="d-flex gap-2 align-items-center">
+            <select class="form-select form-select-sm" id="sortSelect" style="width:auto;">
+              <option value="latest">Latest</option>
+              <option value="low">Price: Low to High</option>
+              <option value="high">Price: High to Low</option>
+              <option value="popularity">Popularity</option>
+              <option value="rating">Rating</option>
+            </select>
+            <button class="nav-icon-btn" id="gridViewBtn" title="Grid view"><i class="fa-solid fa-table-cells"></i></button>
+            <button class="nav-icon-btn" id="listViewBtn" title="List view"><i class="fa-solid fa-list"></i></button>
+          </div>
+        </div>
+        <div class="row g-4" id="productGrid"></div>
+        <nav class="mt-5"><ul class="pagination justify-content-center" id="pagination"></ul></nav>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+<script src="../assets/js/main.js?v=20260717"></script>
+<script src="../assets/js/partials.js?v=20260717"></script>
+<script>
+let state = { page:1, perPage:9, view:'grid', cats:[], brands:[], minRating:0, maxPrice:50, stockOnly:false, discountOnly:false, sort:'latest' };
+const params = new URLSearchParams(location.search);
+if(params.get('cat')) state.cats = [params.get('cat')];
+
+let currentProducts = [];
+let filtersBound = false;
+
+function bindFilters(){
+  if(filtersBound) return;
+  document.querySelectorAll('.cat-check').forEach(el => el.addEventListener('change', () => {
+    state.cats = [...document.querySelectorAll('.cat-check:checked')].map(e => e.value);
+    state.page = 1;
+    render();
+  }));
+
+  document.querySelectorAll('.brand-check').forEach(el => el.addEventListener('change', () => {
+    state.brands = [...document.querySelectorAll('.brand-check:checked')].map(e => e.value);
+    state.page = 1;
+    render();
+  }));
+
+  document.querySelectorAll('.rating-radio').forEach(el => el.addEventListener('change', () => {
+    state.minRating = Number(el.value);
+    state.page = 1;
+    render();
+  }));
+
+  document.getElementById('priceRange').addEventListener('input', function(){
+    state.maxPrice = Number(this.value);
+    document.getElementById('priceVal').textContent = this.value >= 50 ? '₹50+' : '₹' + this.value;
+    state.page = 1;
+    render();
+  });
+
+  document.getElementById('filterStock').addEventListener('change', function(){
+    state.stockOnly = this.checked;
+    state.page = 1;
+    render();
+  });
+
+  document.getElementById('filterDiscount').addEventListener('change', function(){
+    state.discountOnly = this.checked;
+    state.page = 1;
+    render();
+  });
+
+  document.getElementById('sortSelect').addEventListener('change', function(){
+    state.sort = this.value;
+    render();
+  });
+
+  document.getElementById('gridViewBtn').addEventListener('click', () => {
+    state.view = 'grid';
+    render();
+  });
+
+  document.getElementById('listViewBtn').addEventListener('click', () => {
+    state.view = 'list';
+    render();
+  });
+
+  document.getElementById('clearFilters').addEventListener('click', () => {
+    state = { page:1, perPage:9, view:state.view, cats:[], brands:[], minRating:0, maxPrice:50, stockOnly:false, discountOnly:false, sort:'latest' };
+    document.querySelectorAll('.cat-check,.brand-check').forEach(e => e.checked = false);
+    document.querySelectorAll('.rating-radio').forEach(e => e.checked = false);
+    document.getElementById('filterStock').checked = false;
+    document.getElementById('filterDiscount').checked = false;
+    document.getElementById('priceRange').value = 50;
+    document.getElementById('priceVal').textContent = '₹50+';
+    render();
+  });
+
+  filtersBound = true;
+}
+
+function renderShopFilters(products){
+  currentProducts = Array.isArray(products) ? products : [];
+  filtersBound = false;
+
+  const categories = SG.getCategories();
+  const cats = categories.map(c => c.name);
+  const brands = [...new Set(currentProducts.map(p => p.brand))];
+
+  document.getElementById('filterCategory').innerHTML = cats.map(c => `
+    <div class="form-check"><input class="form-check-input cat-check" type="checkbox" value="${c}" id="c_${c.replace(/\s/g,'')}" ${state.cats.includes(c) ? 'checked' : ''}>
+    <label class="form-check-label" for="c_${c.replace(/\s/g,'')}">${c}</label></div>`).join('');
+
+  document.getElementById('filterBrand').innerHTML = brands.map(b => `
+    <div class="form-check"><input class="form-check-input brand-check" type="checkbox" value="${b}" id="b_${b}">
+    <label class="form-check-label" for="b_${b}">${b}</label></div>`).join('');
+
+  document.getElementById('filterRating').innerHTML = [4,3,2,1].map(r => `
+    <div class="form-check"><input class="form-check-input rating-radio" type="radio" name="rating" value="${r}" id="r_${r}">
+    <label class="form-check-label" for="r_${r}">${'★'.repeat(r)}${'☆'.repeat(5-r)} & up</label></div>`).join('');
+
+  bindFilters();
+  render();
+}
+
+function filtered(){
+  return currentProducts.filter(p =>
+    (state.cats.length === 0 || state.cats.includes(p.category)) &&
+    (state.brands.length === 0 || state.brands.includes(p.brand)) &&
+    p.rating >= state.minRating &&
+    (state.maxPrice >= 50 || p.price <= state.maxPrice) &&
+    (!state.stockOnly || p.stock > 0) &&
+    (!state.discountOnly || p.oldPrice)
+  );
+}
+
+function sorted(list){
+  const l = [...list];
+  if(state.sort === 'low') l.sort((a,b) => a.price - b.price);
+  else if(state.sort === 'high') l.sort((a,b) => b.price - a.price);
+  else if(state.sort === 'popularity') l.sort((a,b) => b.reviews - a.reviews);
+  else if(state.sort === 'rating') l.sort((a,b) => b.rating - a.rating);
+  else l.sort((a,b) => b.id - a.id);
+  return l;
+}
+
+function render(){
+  const list = sorted(filtered());
+  document.getElementById('resultsCount').textContent = `Showing ${list.length} product${list.length !== 1 ? 's' : ''}`;
+  const totalPages = Math.max(1, Math.ceil(list.length / state.perPage));
+  state.page = Math.min(state.page, totalPages);
+  const pageItems = list.slice((state.page - 1) * state.perPage, state.page * state.perPage);
+
+  const grid = document.getElementById('productGrid');
+  if(pageItems.length === 0){
+    grid.innerHTML = `<div class="empty-state w-100"><i class="fa-solid fa-box-open"></i><h5 class="mt-3">No products found</h5><p class="text-muted">Try adjusting your filters.</p></div>`;
+  } else if(state.view === 'grid'){
+    grid.innerHTML = pageItems.map(p => `<div class="col-6 col-md-4">${SG.productCard(p,'')}</div>`).join('');
+  } else {
+    grid.innerHTML = pageItems.map(p => `
+      <div class="col-12">
+        <div class="product-card d-flex flex-row" style="min-height:160px;">
+          <a href="product.html?id=${p.id}" class="product-img-wrap" style="width:160px;flex:none;"><img src="${p.image}" alt="${p.name}"></a>
+          <div class="product-info flex-grow-1">
+            <div class="product-cat">${p.category}</div>
+            <a href="product.html?id=${p.id}" class="product-name d-block text-dark">${p.name}</a>
+            <div class="product-rating mb-1">${SG.ratingStars(p.rating)} <span class="text-muted small">(${p.reviews})</span></div>
+            <p class="text-muted small d-none d-md-block">${p.desc}</p>
+            <span class="price-now">₹${p.price.toFixed(2)}</span> ${p.oldPrice ? `<span class="price-old">₹${p.oldPrice.toFixed(2)}</span>` : ''}
+            <button class="btn btn-brand btn-sm ms-2" onclick="SG.addToCart(${p.id})">Add to Cart</button>
+            <button class="btn btn-outline-brand btn-sm" onclick="SG.toggleWishlist(${p.id})"><i class="fa-solid fa-heart"></i></button>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  let pages = '';
+  for(let i = 1; i <= totalPages; i++) pages += `<li class="page-item ${i === state.page ? 'active' : ''}"><button class="page-link" data-p="${i}">${i}</button></li>`;
+  document.getElementById('pagination').innerHTML = pages;
+  document.querySelectorAll('#pagination .page-link').forEach(b => b.addEventListener('click', function(){
+    state.page = Number(this.dataset.p);
+    render();
+    window.scrollTo({ top: 300, behavior: 'smooth' });
+  }));
+
+  if(window.AOS) AOS.refresh();
+}
+
+document.addEventListener('sg:productsReady', (e) => {
+  renderShopFilters(e.detail);
+});
+
+document.addEventListener('sg:categoriesReady', () => {
+  renderShopFilters(SG.products || []);
+});
+</script>
+</body>
+</html>

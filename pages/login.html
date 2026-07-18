@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — Shine Globe</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div class="auth-wrap py-5">
+  <div class="container-xl">
+    <div class="auth-card row g-0 mx-auto" style="max-width:950px;">
+      <div class="col-md-5 d-none d-md-flex flex-column justify-content-center p-5 text-white" style="background:linear-gradient(135deg,var(--c-secondary),var(--c-primary));">
+        <a href="../index.html" class="navbar-brand-shine text-white mb-4">Shine<span class="text-warning">Globe</span></a>
+        <h3 class="fw-bold">Welcome Back</h3>
+        <p class="mb-0">Log in to track orders, manage your wishlist, and check out faster.</p>
+      </div>
+      <div class="col-md-7 p-4 p-md-5">
+        <h4 class="fw-bold mb-1">Login to Your Account</h4>
+        <p class="text-muted mb-4">Enter your details below</p>
+        <form id="loginForm" novalidate>
+          <div class="mb-3">
+            <label class="form-label" for="email">Email Address</label>
+            <input id="email" type="email" required class="form-control" placeholder="you@example.com">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="password">Password</label>
+            <input id="password" type="password" required class="form-control" placeholder="••••••••">
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="remember">
+              <label class="form-check-label small" for="remember">Remember Me</label>
+            </div>
+            <a href="#" class="small" id="forgotPassword">Forgot Password?</a>
+          </div>
+          <button type="submit" class="btn btn-brand w-100 ripple mb-3">Login</button>
+        </form>
+        <div class="text-center text-muted small mb-3">— or continue with —</div>
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <button class="social-login-btn" type="button" data-social="google" data-bs-toggle="modal" data-bs-target="#googleLoginModal"><i class="fa-brands fa-google text-danger me-2"></i>Google</button>
+          </div>
+          <div class="col-6">
+            <button class="social-login-btn" type="button" data-social="facebook"><i class="fa-brands fa-facebook text-primary me-2"></i>Facebook</button>
+          </div>
+        </div>
+        <p class="text-center small mb-0">Don't have an account? <a href="register.html" class="fw-semibold">Register</a></p>
+        <p class="text-center small mt-2 mb-0"><a href="../admin/login.html" class="fw-semibold">Admin Portal</a></p>
+        <p class="small text-muted mt-3 mb-0">Demo tip: use any email and password to log in.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="googleLoginModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Continue with Google</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="small text-muted mb-3">This demo Google flow stores your profile in the browser for quick storefront access.</p>
+        <div class="mb-3">
+          <label class="form-label">Display Name</label>
+          <input type="text" id="googleName" class="form-control" value="Google User">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Google Email</label>
+          <input type="email" id="googleEmail" class="form-control" value="google.user@gmail.com">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-brand" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-brand" id="googleLoginBtn">Sign in with Google</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/main.js"></script>
+<script>
+const rememberBox = document.getElementById('remember');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+const loginForm = document.getElementById('loginForm');
+
+if(SG.isLoggedIn()){
+  window.location.href = 'profile.html';
+}
+
+const savedUser = SG.getCurrentUser();
+if(savedUser?.email){
+  emailInput.value = savedUser.email;
+  rememberBox.checked = true;
+}
+
+loginForm.addEventListener('submit', function(e){
+  e.preventDefault();
+  const ok = SG.login(emailInput.value, passwordInput.value, rememberBox.checked);
+  if(ok){
+    SG.toast('Login successful. Redirecting to your profile.');
+    setTimeout(() => window.location.href = 'profile.html', 900);
+  }
+});
+
+document.getElementById('forgotPassword').addEventListener('click', function(e){
+  e.preventDefault();
+  SG.toast('Password reset is available in the demo flow. Please use any valid-looking email.', 'info');
+});
+
+document.querySelectorAll('[data-social]').forEach(btn => btn.addEventListener('click', function(){
+  if(this.dataset.social !== 'google'){
+    SG.toast('Social sign-in is available in the next step of the demo flow.', 'info');
+  }
+}));
+
+document.getElementById('googleLoginBtn').addEventListener('click', function(){
+  const googleName = document.getElementById('googleName').value.trim();
+  const googleEmail = document.getElementById('googleEmail').value.trim();
+
+  const ok = SG.loginWithGoogle(googleEmail, googleName);
+  if(ok){
+    const modalEl = document.getElementById('googleLoginModal');
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    modal?.hide();
+    SG.toast('Google sign-in successful. Redirecting to your profile.');
+    setTimeout(() => window.location.href = 'profile.html', 900);
+  }
+});
+</script>
+</body>
+</html>

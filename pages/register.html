@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register — Shine Globe</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div class="auth-wrap py-5">
+  <div class="container-xl">
+    <div class="auth-card row g-0 mx-auto" style="max-width:950px;">
+      <div class="col-md-5 d-none d-md-flex flex-column justify-content-center p-5 text-white" style="background:linear-gradient(135deg,var(--c-secondary),var(--c-primary));">
+        <a href="../index.html" class="navbar-brand-shine text-white mb-4">Shine<span class="text-warning">Globe</span></a>
+        <h3 class="fw-bold">Join Shine Globe</h3>
+        <p>Create an account to enjoy faster checkout, order tracking, and exclusive deals.</p>
+      </div>
+      <div class="col-md-7 p-5">
+        <h4 class="fw-bold mb-1">Create Your Account</h4>
+        <p class="text-muted mb-4">It only takes a minute</p>
+        <form id="registerForm">
+          <div class="row g-3 mb-3">
+            <div class="col-6"><label class="form-label">First Name</label><input required class="form-control"></div>
+            <div class="col-6"><label class="form-label">Last Name</label><input required class="form-control"></div>
+          </div>
+          <div class="mb-3"><label class="form-label">Email Address</label><input type="email" required class="form-control"></div>
+          <div class="mb-3"><label class="form-label">Password</label><input type="password" required class="form-control"></div>
+          <div class="form-check mb-3"><input class="form-check-input" type="checkbox" required id="agree"><label class="form-check-label small" for="agree">I agree to the <a href="terms.html">Terms &amp; Conditions</a></label></div>
+          <button class="btn btn-brand w-100 ripple mb-3">Create Account</button>
+        </form>
+        <div class="text-center text-muted small mb-3">— or sign up with —</div>
+        <div class="d-flex gap-2 mb-3">
+          <button class="social-login-btn"><i class="fa-brands fa-google text-danger me-2"></i>Google</button>
+          <button class="social-login-btn"><i class="fa-brands fa-facebook text-primary me-2"></i>Facebook</button>
+        </div>
+        <p class="text-center small mb-0">Already have an account? <a href="login.html" class="fw-semibold">Login</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/main.js"></script>
+<script>
+document.getElementById('registerForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const firstName = this.querySelectorAll('input')[0].value.trim();
+  const lastName = this.querySelectorAll('input')[1].value.trim();
+  const email = this.querySelectorAll('input')[2].value.trim().toLowerCase();
+  SG.store.set('sg_user', {
+    name: `${firstName} ${lastName}`.trim() || 'Shine Globe Customer',
+    email,
+    remember: true,
+    lastLogin: new Date().toISOString()
+  });
+  localStorage.setItem('sg_remember_me', '1');
+  SG.toast('Account created! Redirecting to your profile.');
+  setTimeout(() => window.location.href = 'profile.html', 1200);
+});
+</script>
+</body>
+</html>

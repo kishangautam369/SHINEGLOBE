@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">Product Details — Shine Globe</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+<style>
+  .zoom-wrap{overflow:hidden;border-radius:var(--radius-md);cursor:zoom-in;}
+  .zoom-wrap img{transition:transform .3s ease;width:100%;}
+  .zoom-wrap:hover img{transform:scale(1.5);}
+  .thumb-img{width:70px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid transparent;}
+  .thumb-img.active{border-color:var(--c-primary);}
+</style>
+</head>
+<body>
+<div id="site-header"></div>
+
+<div class="breadcrumb-shine">
+  <div class="container-xl small">
+    <a href="../index.html" class="text-muted">Home</a> / <a href="shop.html" class="text-muted">Shop</a> / <span id="bcCat" class="text-muted"></span> / <span id="bcName" class="text-dark fw-semibold"></span>
+  </div>
+</div>
+
+<section class="section-pad" id="productSection" style="display:none;">
+  <div class="container-xl">
+    <div class="row g-5">
+      <div class="col-lg-6" data-aos="fade-right">
+        <div class="zoom-wrap mb-3"><img id="mainImage" src="" alt="Product image"></div>
+        <div class="d-flex gap-2" id="thumbRow"></div>
+      </div>
+      <div class="col-lg-6" data-aos="fade-left">
+        <span class="product-cat" id="pCat"></span>
+        <h1 class="fw-bold mt-1" id="pName"></h1>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="product-rating" id="pRating"></span>
+          <span class="text-muted small" id="pReviews"></span>
+        </div>
+        <div class="mb-3">
+          <span class="price-now fs-3" id="pPrice"></span>
+          <span class="price-old fs-5" id="pOldPrice"></span>
+        </div>
+        <p class="text-muted" id="pDesc"></p>
+        <div class="stock-badge mb-3" id="pStock"></div>
+
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <div class="qty-control">
+            <button onclick="changeQty(-1)">−</button>
+            <input type="text" id="qtyInput" value="1" readonly>
+            <button onclick="changeQty(1)">+</button>
+          </div>
+          <button class="btn btn-brand ripple flex-grow-1" id="addCartBtn" onclick="SG.ripple(event)"><i class="fa-solid fa-cart-plus me-1"></i> Add to Cart</button>
+          <button class="btn btn-outline-brand" id="wishBtn"><i class="fa-solid fa-heart"></i></button>
+        </div>
+        <a href="checkout.html" class="btn btn-accent w-100 mb-4" id="buyNowBtn">Buy Now</a>
+
+        <div class="d-flex gap-3 mb-4">
+          <span class="text-muted small">Share:</span>
+          <a href="#" class="text-dark"><i class="fa-brands fa-facebook"></i></a>
+          <a href="#" class="text-dark"><i class="fa-brands fa-twitter"></i></a>
+          <a href="#" class="text-dark"><i class="fa-brands fa-whatsapp"></i></a>
+          <a href="#" class="text-dark"><i class="fa-solid fa-link"></i></a>
+        </div>
+
+        <div class="filter-box">
+          <p class="mb-2 small"><i class="fa-solid fa-truck-fast text-primary me-2"></i><strong>Delivery:</strong> 2–5 business days. Free shipping over ₹50.</p>
+          <p class="mb-0 small"><i class="fa-solid fa-rotate-left text-primary me-2"></i><strong>Returns:</strong> 30-day hassle-free return policy.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="mt-5" data-aos="fade-up">
+      <ul class="nav nav-tabs" id="pdTabs">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#descTab">Description</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#specTab">Specifications</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#revTab">Reviews</button></li>
+      </ul>
+      <div class="tab-content border border-top-0 p-4 bg-surface">
+        <div class="tab-pane fade show active" id="descTab"><p id="descTabText" class="text-muted"></p></div>
+        <div class="tab-pane fade" id="specTab">
+          <table class="table"><tbody>
+            <tr><th>Brand</th><td id="specBrand"></td></tr>
+            <tr><th>Category</th><td id="specCat"></td></tr>
+            <tr><th>SKU</th><td id="specSku"></td></tr>
+            <tr><th>Stock</th><td id="specStock"></td></tr>
+          </tbody></table>
+        </div>
+        <div class="tab-pane fade" id="revTab">
+          <div id="reviewList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Related -->
+    <div class="mt-5">
+      <h4 class="section-title mb-4" data-aos="fade-up">Related Products</h4>
+      <div class="row g-4" id="relatedGrid"></div>
+    </div>
+
+    <!-- Recently viewed -->
+    <div class="mt-5">
+      <h4 class="section-title mb-4" data-aos="fade-up">Recently Viewed</h4>
+      <div class="row g-4" id="recentGrid"></div>
+    </div>
+  </div>
+</section>
+
+<div class="container-xl" id="notFoundState" style="display:none;">
+  <div class="empty-state"><i class="fa-solid fa-circle-exclamation"></i><h4 class="mt-3">Product not found</h4><a href="shop.html" class="btn btn-brand mt-3">Back to Shop</a></div>
+</div>
+
+<div id="site-footer"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/partials.js"></script>
+<script>
+let currentProduct = null;
+function changeQty(d){
+  const inp = document.getElementById('qtyInput');
+  inp.value = Math.max(1, Number(inp.value) + d);
+}
+
+document.addEventListener('sg:productsReady', (e) => {
+  const products = e.detail;
+  const id = Number(new URLSearchParams(location.search).get('id'));
+  const p = products.find(x => x.id === id);
+
+  if(!p){ document.getElementById('notFoundState').style.display='block'; return; }
+  currentProduct = p;
+  SG.trackRecentlyViewed(p.id);
+  document.getElementById('productSection').style.display='block';
+  document.getElementById('pageTitle').textContent = p.name + ' — Shine Globe';
+  document.getElementById('bcCat').textContent = p.category;
+  document.getElementById('bcName').textContent = p.name;
+  document.getElementById('mainImage').src = p.image;
+  document.getElementById('thumbRow').innerHTML = [p.image,p.image,p.image].map((img,i)=>`<img src="${img}" class="thumb-img ${i===0?'active':''}" onclick="document.getElementById('mainImage').src=this.src; document.querySelectorAll('.thumb-img').forEach(t=>t.classList.remove('active')); this.classList.add('active');">`).join('');
+  document.getElementById('pCat').textContent = p.category;
+  document.getElementById('pName').textContent = p.name;
+  document.getElementById('pRating').innerHTML = SG.ratingStars(p.rating);
+  document.getElementById('pReviews').textContent = `(${p.reviews} reviews)`;
+  document.getElementById('pPrice').textContent = '₹'+p.price.toFixed(2);
+  document.getElementById('pOldPrice').textContent = p.oldPrice ? '₹'+p.oldPrice.toFixed(2) : '';
+  document.getElementById('pDesc').textContent = p.desc;
+  document.getElementById('descTabText').textContent = p.desc + ' Designed for everyday reliability, sourced from trusted manufacturers and quality-checked before shipping.';
+  document.getElementById('pStock').className = 'stock-badge mb-3 ' + (p.stock>0?'in':'out');
+  document.getElementById('pStock').textContent = p.stock>0 ? `${p.stock} in stock` : 'Out of stock';
+  document.getElementById('specBrand').textContent = p.brand;
+  document.getElementById('specCat').textContent = p.category;
+  document.getElementById('specSku').textContent = 'SG-' + String(p.id).padStart(5,'0');
+  document.getElementById('specStock').textContent = p.stock;
+
+  const addBtn = document.getElementById('addCartBtn');
+  addBtn.disabled = p.stock === 0;
+  addBtn.onclick = (ev) => { SG.addToCart(p.id, Number(document.getElementById('qtyInput').value)); SG.ripple(ev); };
+  document.getElementById('buyNowBtn').onclick = () => { SG.addToCart(p.id, Number(document.getElementById('qtyInput').value)); };
+  const wishBtn = document.getElementById('wishBtn');
+  wishBtn.classList.toggle('active', SG.getWishlist().includes(p.id));
+  wishBtn.onclick = () => { SG.toggleWishlist(p.id); wishBtn.classList.toggle('active'); };
+
+  // demo reviews
+  const sampleReviews = [
+    {n:'Jordan P.', r:5, t:'Exactly as described, fast shipping and great quality for the price.'},
+    {n:'Lena K.', r:4, t:'Good product overall, packaging could be a little sturdier.'},
+    {n:'Omar S.', r:5, t:'Reordering already — this is now a staple in our home.'}
+  ];
+  document.getElementById('reviewList').innerHTML = sampleReviews.map(r => `
+    <div class="review-card mb-3"><div class="d-flex justify-content-between"><strong>${r.n}</strong><span class="product-rating">${SG.ratingStars(r.r)}</span></div><p class="text-muted mb-0 mt-2">${r.t}</p></div>`).join('');
+
+  // related
+  const related = products.filter(x => x.category === p.category && x.id !== p.id).slice(0,4);
+  document.getElementById('relatedGrid').innerHTML = related.map(rp => `<div class="col-6 col-md-3">${SG.productCard(rp,'')}</div>`).join('') || '<p class="text-muted">No related products.</p>';
+
+  // recently viewed
+  const recentIds = SG.store.get('sg_recent', []).filter(rid => rid !== p.id);
+  const recent = recentIds.map(rid => products.find(x=>x.id===rid)).filter(Boolean).slice(0,4);
+  document.getElementById('recentGrid').innerHTML = recent.map(rp => `<div class="col-6 col-md-3">${SG.productCard(rp,'')}</div>`).join('') || '<p class="text-muted">You haven\'t viewed any other products yet.</p>';
+
+  if(window.AOS) AOS.refresh();
+});
+</script>
+</body>
+</html>

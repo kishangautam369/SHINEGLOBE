@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Categories — Shine Globe Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="assets/admin.css">
+<style>
+.cat-color-dot{width:14px;height:14px;border-radius:50%;display:inline-block;}
+.cat-icon-preview{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;}
+.icon-picker{display:flex;flex-wrap:wrap;gap:8px;max-height:180px;overflow-y:auto;}
+.icon-opt{width:36px;height:36px;border-radius:8px;border:1px solid var(--a-border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;font-size:.9rem;}
+.icon-opt:hover,.icon-opt.selected{background:var(--a-primary);color:#fff;border-color:var(--a-primary);}
+.drop-zone{border:2px dashed var(--a-border);border-radius:12px;padding:1.5rem;text-align:center;cursor:pointer;transition:.2s;}
+.drop-zone:hover{border-color:var(--a-primary);background:rgba(37,99,235,.04);}
+.cat-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;}
+.cat-card-item{background:var(--a-surface);border:1px solid var(--a-border);border-radius:14px;padding:1.2rem;transition:.2s;position:relative;}
+.cat-card-item:hover{box-shadow:0 6px 20px rgba(15,23,42,.1);transform:translateY(-2px);}
+.cat-actions{position:absolute;top:10px;right:10px;display:flex;gap:6px;}
+</style>
+</head>
+<body>
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="adminSidebar"></aside>
+  <div class="admin-main">
+    <div class="admin-topbar" id="adminTopbar"></div>
+    <div class="admin-content">
+
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+          <h5 class="fw-bold mb-0">Categories</h5>
+          <p class="text-muted small mb-0" id="catCountLabel">Loading...</p>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="a-btn a-btn-outline" id="toggleViewBtn" onclick="toggleView()">
+            <i class="fa-solid fa-table-cells me-1"></i>Grid View
+          </button>
+          <button class="a-btn a-btn-primary" onclick="openCatModal()">
+            <i class="fa-solid fa-plus me-1"></i>Add Category
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="row g-3 mb-4" id="catStats"></div>
+
+      <!-- Toolbar -->
+      <div class="a-card p-3 mb-3 d-flex flex-wrap gap-2 align-items-center">
+        <div class="a-search">
+          <i class="fa-solid fa-magnifying-glass text-muted"></i>
+          <input id="catSearch" placeholder="Search categories...">
+        </div>
+        <select class="form-select form-select-sm" style="width:auto;" id="catStatusFilter">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <select class="form-select form-select-sm" style="width:auto;" id="catSortFilter">
+          <option value="name">Sort: Name</option>
+          <option value="products">Sort: Product Count</option>
+          <option value="newest">Sort: Newest</option>
+        </select>
+      </div>
+
+      <!-- Table View (default) -->
+      <div id="tableView">
+        <div class="a-card">
+          <div class="table-responsive">
+            <table class="a-table">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" id="selectAllCats"></th>
+                  <th>Icon</th>
+                  <th>Category Name</th>
+                  <th>Slug</th>
+                  <th>Products</th>
+                  <th>SEO Title</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="catTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <nav class="mt-3"><ul class="pagination pagination-sm justify-content-center" id="catPagination"></ul></nav>
+      </div>
+
+      <!-- Grid View (hidden by default) -->
+      <div id="gridView" style="display:none;">
+        <div class="cat-card-grid" id="catCardGrid"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Add / Edit Modal -->
+<div class="modal fade" id="catModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold" id="catModalTitle">Add Category</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="catForm">
+          <input type="hidden" id="cf_id">
+          <div class="row g-3">
+
+            <!-- Name & Slug -->
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Category Name <span class="text-danger">*</span></label>
+              <input required class="form-control" id="cf_name" placeholder="e.g. Cleaning Supplies">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Slug</label>
+              <div class="input-group">
+                <span class="input-group-text small text-muted">/</span>
+                <input class="form-control" id="cf_slug" placeholder="cleaning-supplies">
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Description</label>
+              <textarea class="form-control" id="cf_desc" rows="2" placeholder="Short description of this category..."></textarea>
+            </div>
+
+            <!-- Icon Picker -->
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Icon</label>
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="cat-icon-preview" id="iconPreview" style="background:#2563EB;">
+                  <i class="fa-solid fa-tag" id="iconPreviewIcon"></i>
+                </div>
+                <span class="text-muted small" id="selectedIconLabel">fa-tag</span>
+              </div>
+              <div class="icon-picker" id="iconPicker"></div>
+              <input type="hidden" id="cf_icon" value="fa-tag">
+            </div>
+
+            <!-- Color -->
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Brand Color</label>
+              <div class="d-flex gap-2 flex-wrap" id="colorPicker"></div>
+              <input type="hidden" id="cf_color" value="#2563EB">
+              <div class="mt-2">
+                <label class="form-label small fw-semibold">Or pick custom:</label>
+                <input type="color" class="form-control form-control-color" id="cf_colorCustom" value="#2563EB">
+              </div>
+
+              <!-- Status -->
+              <div class="mt-3">
+                <label class="form-label small fw-semibold d-block">Status</label>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="cf_active" checked>
+                  <label class="form-check-label small" for="cf_active">Active (visible in store)</label>
+                </div>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="cf_featured">
+                  <label class="form-check-label small" for="cf_featured">Featured on homepage</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Banner Image -->
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Category Banner Image</label>
+              <div class="row g-2">
+                <div class="col-md-8">
+                  <input class="form-control" id="cf_banner" placeholder="https://... or paste URL">
+                </div>
+                <div class="col-md-4">
+                  <div class="drop-zone" onclick="document.getElementById('cf_banner_file').click()">
+                    <i class="fa-solid fa-cloud-arrow-up text-muted mb-1"></i>
+                    <div class="small text-muted">Click to upload</div>
+                    <input type="file" id="cf_banner_file" class="d-none" accept="image/*">
+                  </div>
+                </div>
+              </div>
+              <div id="bannerPreviewWrap" class="mt-2" style="display:none;">
+                <img id="bannerPreview" class="rounded-3 w-100" style="max-height:120px;object-fit:cover;" alt="Banner preview">
+              </div>
+            </div>
+
+            <!-- SEO -->
+            <div class="col-12">
+              <div class="p-3 rounded-3" style="background:var(--a-bg);border:1px solid var(--a-border);">
+                <h6 class="fw-bold mb-3"><i class="fa-solid fa-magnifying-glass me-2 text-primary"></i>SEO Settings</h6>
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label class="form-label small fw-semibold">SEO Title</label>
+                    <input class="form-control" id="cf_seoTitle" placeholder="Cleaning Supplies — Shine Globe">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small fw-semibold">Meta Description</label>
+                    <textarea class="form-control" id="cf_seoDesc" rows="2" placeholder="Shop premium cleaning supplies..."></textarea>
+                    <div class="d-flex justify-content-between mt-1">
+                      <span class="text-muted" style="font-size:.72rem;">Recommended: 50–160 characters</span>
+                      <span class="text-muted" style="font-size:.72rem;" id="seoDescCount">0 / 160</span>
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small fw-semibold">Keywords</label>
+                    <input class="form-control" id="cf_keywords" placeholder="cleaning, supplies, hygiene, products">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-0">
+        <button class="a-btn a-btn-outline" data-bs-dismiss="modal">Cancel</button>
+        <button class="a-btn a-btn-primary" onclick="saveCat()">
+          <i class="fa-solid fa-floppy-disk me-1"></i>Save Category
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal fade" id="deleteCatModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+    <div class="modal-content text-center p-4">
+      <i class="fa-solid fa-triangle-exclamation fa-3x text-warning mb-3"></i>
+      <h5 class="fw-bold">Delete Category?</h5>
+      <p class="text-muted small" id="deleteMsg">This cannot be undone.</p>
+      <div class="d-flex gap-2 justify-content-center mt-2">
+        <button class="a-btn a-btn-outline" data-bs-dismiss="modal">Cancel</button>
+        <button class="a-btn" style="background:#DC2626;color:#fff;" id="confirmDeleteBtn">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toastWrap" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:1300;"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="assets/admin.js"></script>
+<script>
+ADMIN.initLayout('categories.html', 'Categories');
+
+/* ── default category data ── */
+const DEFAULT_CATS = [
+  { id:1, name:'Disposable Products', slug:'disposable-products', desc:'Single-use items for hygiene and convenience.', icon:'fa-spray-can', color:'#2563EB', banner:'https://images.unsplash.com/photo-1584634731339-252c581abfc5?w=800', seoTitle:'Disposable Products — Shine Globe', seoDesc:'Shop high-quality disposable gloves, masks, cups and cutlery.', keywords:'disposable, gloves, masks', active:true, featured:true, created:'2024-01-10' },
+  { id:2, name:'Cleaning Supplies', slug:'cleaning-supplies', desc:'Professional and home cleaning essentials.', icon:'fa-broom', color:'#16A34A', banner:'https://images.unsplash.com/photo-1583947581924-860bda6a26df?w=800', seoTitle:'Cleaning Supplies — Shine Globe', seoDesc:'All-purpose cleaners, microfiber cloths and floor care products.', keywords:'cleaning, mop, spray, cleaner', active:true, featured:true, created:'2024-01-10' },
+  { id:3, name:'Medical Supplies', slug:'medical-supplies', desc:'Certified healthcare and first-aid products.', icon:'fa-kit-medical', color:'#DC2626', banner:'https://images.unsplash.com/photo-1584362917165-526a968579e8?w=800', seoTitle:'Medical Supplies — Shine Globe', seoDesc:'Thermometers, first aid kits, bandages and blood pressure monitors.', keywords:'medical, first aid, thermometer', active:true, featured:false, created:'2024-01-11' },
+  { id:4, name:'Hygiene Products', slug:'hygiene-products', desc:'Personal care and sanitation essentials.', icon:'fa-pump-soap', color:'#7C3AED', banner:'https://images.unsplash.com/photo-1584744982491-665216d95f8b?w=800', seoTitle:'Hygiene Products — Shine Globe', seoDesc:'Hand sanitizers, soaps, toilet paper and facial tissues.', keywords:'hygiene, soap, sanitizer, tissue', active:true, featured:true, created:'2024-01-12' },
+  { id:5, name:'Household', slug:'household', desc:'Everyday items to keep your home running.', icon:'fa-house', color:'#F59E0B', banner:'https://images.unsplash.com/photo-1602910344008-22f323cc1817?w=800', seoTitle:'Household Essentials — Shine Globe', seoDesc:'Laundry pods, air fresheners, trash bags and LED bulbs.', keywords:'household, laundry, trash bags', active:true, featured:false, created:'2024-01-13' },
+  { id:6, name:'Packaging', slug:'packaging', desc:'Boxes, bubble wrap and shipping tape.', icon:'fa-box-open', color:'#0EA5E9', banner:'https://images.unsplash.com/photo-1605600659873-d808a13e4d2a?w=800', seoTitle:'Packaging Supplies — Shine Globe', seoDesc:'Heavy-duty corrugated boxes, bubble wrap and packing tape.', keywords:'packaging, boxes, bubble wrap, tape', active:true, featured:false, created:'2024-01-14' },
+  { id:7, name:'Grocery', slug:'grocery', desc:'Premium staple foods and pantry essentials.', icon:'fa-basket-shopping', color:'#EC4899', banner:'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800', seoTitle:'Grocery Essentials — Shine Globe', seoDesc:'Basmati rice, olive oil, nuts and other pantry staples.', keywords:'grocery, rice, olive oil, nuts', active:true, featured:true, created:'2024-01-15' },
+  { id:8, name:'Office Supplies', slug:'office-supplies', desc:'Stationery and workspace organisation.', icon:'fa-briefcase', color:'#64748B', banner:'https://images.unsplash.com/photo-1568205612837-017257d2310a?w=800', seoTitle:'Office Supplies — Shine Globe', seoDesc:'Copy paper, pens, sticky notes and desk organisers.', keywords:'office, pens, paper, stationery', active:false, featured:false, created:'2024-01-16' },
+];
+
+const ICON_LIST = [
+  'fa-tag','fa-broom','fa-spray-can','fa-kit-medical','fa-pump-soap','fa-house','fa-box-open',
+  'fa-basket-shopping','fa-briefcase','fa-truck','fa-star','fa-heart','fa-bolt','fa-shield-halved',
+  'fa-leaf','fa-fire','fa-droplet','fa-snowflake','fa-sun','fa-moon','fa-globe','fa-gear',
+  'fa-wrench','fa-scissors','fa-pen','fa-book','fa-camera','fa-music','fa-gamepad','fa-laptop',
+];
+const COLORS = ['#2563EB','#16A34A','#DC2626','#7C3AED','#F59E0B','#0EA5E9','#EC4899','#64748B','#0F172A','#D97706'];
+
+let allCats = [], viewMode = 'table', page = 1, perPage = 8;
+
+/* ── Bootstrap modal helpers ── */
+function showModal(id){ const m = document.getElementById(id); if(!bootstrap.Modal.getInstance(m)) new bootstrap.Modal(m); bootstrap.Modal.getInstance(m).show(); }
+function hideModal(id){ bootstrap.Modal.getInstance(document.getElementById(id))?.hide(); }
+
+/* ── Toast ── */
+function toast(msg, type='success'){
+  const colors={success:'#16A34A',error:'#DC2626',info:'#2563EB'};
+  const icons={success:'fa-circle-check',error:'fa-circle-exclamation',info:'fa-circle-info'};
+  const el=document.createElement('div');
+  el.className='toast align-items-center text-white border-0 show mb-2';
+  el.style.cssText=`background:${colors[type]};border-radius:10px;min-width:260px;`;
+  el.innerHTML=`<div class="d-flex"><div class="toast-body"><i class="fa-solid ${icons[type]} me-2"></i>${msg}</div><button class="btn-close btn-close-white me-2 m-auto" onclick="this.closest('.toast').remove()"></button></div>`;
+  document.getElementById('toastWrap').appendChild(el);
+  setTimeout(()=>el.remove(),3500);
+}
+
+/* ── Init ── */
+document.addEventListener('admin:dataReady', () => {
+  allCats = ADMIN.store('admin_categories', null);
+  if(!allCats){ allCats = DEFAULT_CATS; ADMIN.setStore('admin_categories', allCats); }
+
+  buildIconPicker();
+  buildColorPicker();
+  bindEvents();
+  render();
+});
+
+function buildIconPicker(){
+  document.getElementById('iconPicker').innerHTML = ICON_LIST.map(ic =>
+    `<div class="icon-opt" data-icon="${ic}" title="${ic}" onclick="selectIcon('${ic}')"><i class="fa-solid ${ic}"></i></div>`
+  ).join('');
+}
+
+function buildColorPicker(){
+  document.getElementById('colorPicker').innerHTML = COLORS.map(c =>
+    `<div style="width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;border:3px solid transparent;" data-color="${c}" onclick="selectColor('${c}')" title="${c}"></div>`
+  ).join('');
+}
+
+function selectIcon(ic){
+  document.getElementById('cf_icon').value = ic;
+  document.getElementById('iconPreviewIcon').className = `fa-solid ${ic}`;
+  document.getElementById('selectedIconLabel').textContent = ic;
+  document.querySelectorAll('.icon-opt').forEach(el => el.classList.toggle('selected', el.dataset.icon===ic));
+  document.getElementById('iconPreview').style.background = document.getElementById('cf_color').value;
+}
+
+function selectColor(c){
+  document.getElementById('cf_color').value = c;
+  document.getElementById('cf_colorCustom').value = c;
+  document.getElementById('iconPreview').style.background = c;
+  document.querySelectorAll('#colorPicker [data-color]').forEach(el => el.style.border = el.dataset.color===c ? '3px solid #0F172A' : '3px solid transparent');
+}
+
+function bindEvents(){
+  document.getElementById('catSearch').addEventListener('input', () => { page=1; render(); });
+  document.getElementById('catStatusFilter').addEventListener('change', () => { page=1; render(); });
+  document.getElementById('catSortFilter').addEventListener('change', () => render());
+  document.getElementById('selectAllCats').addEventListener('change', function(){
+    document.querySelectorAll('.cat-row-check').forEach(cb => cb.checked = this.checked);
+  });
+  document.getElementById('cf_name').addEventListener('input', function(){
+    document.getElementById('cf_slug').value = this.value.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    if(!document.getElementById('cf_seoTitle').value) document.getElementById('cf_seoTitle').value = this.value + ' — Shine Globe';
+  });
+  document.getElementById('cf_seoDesc').addEventListener('input', function(){
+    document.getElementById('seoDescCount').textContent = this.value.length + ' / 160';
+  });
+  document.getElementById('cf_colorCustom').addEventListener('input', function(){ selectColor(this.value); });
+  document.getElementById('cf_banner').addEventListener('input', function(){ previewBanner(this.value); });
+  document.getElementById('cf_banner_file').addEventListener('change', function(){
+    if(this.files[0]){
+      const reader = new FileReader();
+      reader.onload = () => { document.getElementById('cf_banner').value = reader.result; previewBanner(reader.result); };
+      reader.readAsDataURL(this.files[0]);
+    }
+  });
+}
+
+function previewBanner(url){
+  const wrap = document.getElementById('bannerPreviewWrap');
+  if(url){ document.getElementById('bannerPreview').src = url; wrap.style.display='block'; }
+  else { wrap.style.display='none'; }
+}
+
+/* ── Filter / Sort ── */
+function filteredList(){
+  const q = document.getElementById('catSearch').value.toLowerCase();
+  const status = document.getElementById('catStatusFilter').value;
+  const sort = document.getElementById('catSortFilter').value;
+  const products = ADMIN.store('admin_products', []);
+  let list = allCats.filter(c =>
+    (!q || c.name.toLowerCase().includes(q) || (c.desc||'').toLowerCase().includes(q)) &&
+    (!status || (status==='active' ? c.active : !c.active))
+  ).map(c => ({ ...c, productCount: products.filter(p=>p.category===c.name).length }));
+  if(sort==='products') list.sort((a,b)=>b.productCount-a.productCount);
+  else if(sort==='newest') list.sort((a,b)=>new Date(b.created)-new Date(a.created));
+  else list.sort((a,b)=>a.name.localeCompare(b.name));
+  return list;
+}
+
+/* ── Render ── */
+function render(){
+  const list = filteredList();
+  const totalPages = Math.max(1, Math.ceil(list.length/perPage));
+  page = Math.min(page, totalPages);
+  const items = list.slice((page-1)*perPage, page*perPage);
+
+  document.getElementById('catCountLabel').textContent = `${list.length} categories found`;
+
+  // Stat cards
+  const products = ADMIN.store('admin_products', []);
+  document.getElementById('catStats').innerHTML = [
+    { label:'Total Categories', val:allCats.length, icon:'fa-layer-group', color:'#2563EB', bg:'#DBEAFE' },
+    { label:'Active', val:allCats.filter(c=>c.active).length, icon:'fa-circle-check', color:'#16A34A', bg:'#DCFCE7' },
+    { label:'Inactive', val:allCats.filter(c=>!c.active).length, icon:'fa-circle-xmark', color:'#DC2626', bg:'#FEE2E2' },
+    { label:'Featured', val:allCats.filter(c=>c.featured).length, icon:'fa-star', color:'#F59E0B', bg:'#FEF3C7' },
+  ].map(s=>`
+    <div class="col-6 col-lg-3">
+      <div class="a-card stat-card">
+        <div class="stat-icon" style="background:${s.bg};color:${s.color};"><i class="fa-solid ${s.icon}"></i></div>
+        <div><div class="stat-value">${s.val}</div><div class="stat-label">${s.label}</div></div>
+      </div>
+    </div>`).join('');
+
+  if(viewMode === 'table') renderTable(items, totalPages);
+  else renderGrid(list);
+}
+
+function renderTable(items, totalPages){
+  document.getElementById('tableView').style.display = '';
+  document.getElementById('gridView').style.display = 'none';
+
+  const products = ADMIN.store('admin_products', []);
+  document.getElementById('catTableBody').innerHTML = items.length ? items.map(c => `
+    <tr>
+      <td><input type="checkbox" class="cat-row-check" data-id="${c.id}"></td>
+      <td>
+        <div class="cat-icon-preview" style="background:${c.color};width:38px;height:38px;font-size:.9rem;border-radius:8px;">
+          <i class="fa-solid ${c.icon}"></i>
+        </div>
+      </td>
+      <td>
+        <div class="fw-semibold">${c.name}</div>
+        <div class="text-muted" style="font-size:.75rem;">${c.desc||''}</div>
+      </td>
+      <td class="text-muted small">/${c.slug}</td>
+      <td>
+        <span class="fw-semibold">${products.filter(p=>p.category===c.name).length}</span>
+        <span class="text-muted small"> products</span>
+      </td>
+      <td class="text-muted small">${c.seoTitle||'—'}</td>
+      <td>
+        <span class="status-pill ${c.active?'status-success':'status-neutral'}">${c.active?'Active':'Inactive'}</span>
+        ${c.featured?'<span class="status-pill status-warning ms-1">Featured</span>':''}
+      </td>
+      <td class="text-muted small">${c.created}</td>
+      <td>
+        <button class="a-icon-btn" onclick="openCatModal(${c.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+        <button class="a-icon-btn" onclick="toggleCatActive(${c.id})" title="${c.active?'Deactivate':'Activate'}"><i class="fa-solid fa-power-off"></i></button>
+        <button class="a-icon-btn" onclick="confirmDelete(${c.id})" title="Delete"><i class="fa-solid fa-trash text-danger"></i></button>
+      </td>
+    </tr>`).join('') :
+    `<tr><td colspan="9" class="text-center text-muted py-5"><i class="fa-solid fa-layer-group fa-2x mb-2 d-block" style="opacity:.2;"></i>No categories match your search.</td></tr>`;
+
+  let pages = '';
+  for(let i=1;i<=totalPages;i++) pages += `<li class="page-item ${i===page?'active':''}"><button class="page-link" onclick="page=${i};render()">${i}</button></li>`;
+  document.getElementById('catPagination').innerHTML = pages;
+}
+
+function renderGrid(list){
+  document.getElementById('tableView').style.display = 'none';
+  document.getElementById('gridView').style.display = '';
+  const products = ADMIN.store('admin_products', []);
+  document.getElementById('catCardGrid').innerHTML = list.length ? list.map(c => `
+    <div class="cat-card-item">
+      <div class="cat-actions">
+        <button class="a-icon-btn" onclick="openCatModal(${c.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+        <button class="a-icon-btn" onclick="confirmDelete(${c.id})" title="Delete"><i class="fa-solid fa-trash text-danger"></i></button>
+      </div>
+      ${c.banner ? `<img src="${c.banner}" class="w-100 rounded-3 mb-3" style="height:90px;object-fit:cover;" alt="${c.name} banner">` : ''}
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <div class="cat-icon-preview" style="background:${c.color};width:40px;height:40px;flex-shrink:0;"><i class="fa-solid ${c.icon}"></i></div>
+        <div>
+          <div class="fw-semibold">${c.name}</div>
+          <div class="text-muted" style="font-size:.75rem;">/${c.slug}</div>
+        </div>
+      </div>
+      <p class="text-muted small mb-2">${c.desc||''}</p>
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="text-muted small"><i class="fa-solid fa-box me-1"></i>${products.filter(p=>p.category===c.name).length} products</span>
+        <span class="status-pill ${c.active?'status-success':'status-neutral'}">${c.active?'Active':'Inactive'}</span>
+      </div>
+    </div>`).join('') :
+    `<div class="text-center text-muted py-5 w-100"><i class="fa-solid fa-layer-group fa-2x mb-2 d-block" style="opacity:.2;"></i>No categories found.</div>`;
+}
+
+/* ── Toggle View ── */
+function toggleView(){
+  viewMode = viewMode==='table' ? 'grid' : 'table';
+  document.getElementById('toggleViewBtn').innerHTML = viewMode==='table'
+    ? '<i class="fa-solid fa-table-cells me-1"></i>Grid View'
+    : '<i class="fa-solid fa-list me-1"></i>Table View';
+  render();
+}
+
+/* ── Open Modal ── */
+function openCatModal(id){
+  const c = id ? allCats.find(x=>x.id===Number(id)) : null;
+  document.getElementById('catModalTitle').textContent = c ? 'Edit Category' : 'Add Category';
+  document.getElementById('cf_id').value = c ? c.id : '';
+  document.getElementById('cf_name').value = c ? c.name : '';
+  document.getElementById('cf_slug').value = c ? c.slug : '';
+  document.getElementById('cf_desc').value = c ? (c.desc||'') : '';
+  document.getElementById('cf_banner').value = c ? (c.banner||'') : '';
+  document.getElementById('cf_seoTitle').value = c ? (c.seoTitle||'') : '';
+  document.getElementById('cf_seoDesc').value = c ? (c.seoDesc||'') : '';
+  document.getElementById('cf_keywords').value = c ? (c.keywords||'') : '';
+  document.getElementById('cf_active').checked = c ? c.active : true;
+  document.getElementById('cf_featured').checked = c ? (c.featured||false) : false;
+  document.getElementById('seoDescCount').textContent = (c?.seoDesc||'').length + ' / 160';
+
+  // icon
+  const icon = c ? c.icon : 'fa-tag';
+  selectIcon(icon);
+  // color
+  const color = c ? c.color : '#2563EB';
+  selectColor(color);
+  // banner preview
+  previewBanner(c?.banner||'');
+
+  showModal('catModal');
+}
+
+/* ── Save ── */
+async function saveCat(){
+  const name = document.getElementById('cf_name').value.trim();
+  if(!name){ toast('Category name is required.','error'); return; }
+
+  const id = document.getElementById('cf_id').value;
+  const data = {
+    name,
+    slug: document.getElementById('cf_slug').value || name.toLowerCase().replace(/[^a-z0-9]+/g,'-'),
+    desc: document.getElementById('cf_desc').value,
+    icon: document.getElementById('cf_icon').value,
+    color: document.getElementById('cf_color').value,
+    banner: document.getElementById('cf_banner').value,
+    seoTitle: document.getElementById('cf_seoTitle').value,
+    seoDesc: document.getElementById('cf_seoDesc').value,
+    keywords: document.getElementById('cf_keywords').value,
+    active: document.getElementById('cf_active').checked,
+    featured: document.getElementById('cf_featured').checked,
+    created: id ? (allCats.find(c=>c.id===Number(id))?.created || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0],
+  };
+
+  if(id){
+    const idx = allCats.findIndex(c=>c.id===Number(id));
+    allCats[idx] = { ...allCats[idx], ...data };
+    toast('Category updated successfully!');
+  } else {
+    const newId = Math.max(...allCats.map(c=>c.id), 0) + 1;
+    allCats.push({ id:newId, ...data });
+    toast('Category added successfully!');
+  }
+
+  try { allCats = await ADMIN.saveCollection('categories', allCats); }
+  catch(error) { console.error(error); toast('Category was not saved to the shared server.','error'); return; }
+  hideModal('catModal');
+  render();
+}
+
+/* ── Toggle Active ── */
+async function toggleCatActive(id){
+  const c = allCats.find(x=>x.id===id);
+  c.active = !c.active;
+  try { allCats = await ADMIN.saveCollection('categories', allCats); }
+  catch(error) { console.error(error); toast('Category was not updated on the shared server.','error'); return; }
+  toast(`Category ${c.active?'activated':'deactivated'}.`);
+  render();
+}
+
+/* ── Delete ── */
+let pendingDeleteId = null;
+function confirmDelete(id){
+  const c = allCats.find(x=>x.id===id);
+  const products = ADMIN.store('admin_products', []);
+  const count = products.filter(p=>p.category===c.name).length;
+  pendingDeleteId = id;
+  document.getElementById('deleteMsg').innerHTML =
+    `You are about to delete <strong>${c.name}</strong>.<br>
+    ${count>0?`<span class="text-danger">⚠️ This category has <strong>${count} product(s)</strong> that will become uncategorised.</span><br>`:''}
+    This cannot be undone.`;
+  showModal('deleteCatModal');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+    allCats = allCats.filter(c=>c.id!==pendingDeleteId);
+    try { allCats = await ADMIN.saveCollection('categories', allCats); }
+    catch(error) { console.error(error); toast('Category was not deleted from the shared server.','error'); return; }
+    hideModal('deleteCatModal');
+    toast('Category deleted.','info');
+    render();
+  });
+});
+document.addEventListener('admin:remoteUpdate', event => {
+  if(event.detail.resource === 'categories') { allCats = ADMIN.store('admin_categories', []); render(); }
+});
+</script>
+</body>
+</html>

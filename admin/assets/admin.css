@@ -1,0 +1,118 @@
+/* ===========================================================
+   SHINE GLOBE ADMIN — Dashboard Design System
+   =========================================================== */
+:root{
+  --a-bg:#F4F6FA;
+  --a-surface:#FFFFFF;
+  --a-sidebar:#0F172A;
+  --a-sidebar-hover:#1E293B;
+  --a-primary:#2563EB;
+  --a-accent:#F59E0B;
+  --a-text:#0F172A;
+  --a-muted:#64748B;
+  --a-border:#E5E9F0;
+  --a-success:#16A34A;
+  --a-warning:#F59E0B;
+  --a-danger:#DC2626;
+  --a-radius:14px;
+  --a-shadow:0 4px 14px rgba(15,23,42,.06);
+}
+[data-theme="dark"]{
+  --a-bg:#0B1220; --a-surface:#111A2C; --a-text:#E7ECF5; --a-muted:#94A3B8; --a-border:#1F2A3F;
+}
+*{box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:var(--a-bg);color:var(--a-text);}
+h1,h2,h3,h4,h5,.font-display{font-family:'Poppins',sans-serif;}
+a{text-decoration:none;}
+
+/* ---- Layout ---- */
+.admin-shell{display:flex;min-height:100vh;}
+.admin-sidebar{
+  width:260px;background:var(--a-sidebar);color:#CBD5E1;flex-shrink:0;position:sticky;top:0;height:100vh;
+  overflow-y:auto;transition:width .25s ease;z-index:50;
+}
+.admin-sidebar.collapsed{width:78px;}
+.admin-sidebar.collapsed .side-label, .admin-sidebar.collapsed .side-brand-text, .admin-sidebar.collapsed .side-section-label{display:none;}
+.side-brand{display:flex;align-items:center;gap:.6rem;padding:1.3rem 1.2rem;color:#fff;font-family:'Poppins',sans-serif;font-weight:700;font-size:1.2rem;border-bottom:1px solid rgba(255,255,255,.08);}
+.side-section-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#64748B;padding:1rem 1.2rem .4rem;}
+.side-link{display:flex;align-items:center;gap:.8rem;padding:.7rem 1.2rem;color:#CBD5E1;font-size:.9rem;border-left:3px solid transparent;transition:.2s;cursor:pointer;}
+.side-link:hover{background:var(--a-sidebar-hover);color:#fff;}
+.side-link.active{background:var(--a-sidebar-hover);color:#fff;border-left-color:var(--a-primary);}
+.side-link i{width:18px;text-align:center;}
+.side-submenu{padding-left:2.6rem;display:none;}
+.side-submenu.open{display:block;}
+.side-submenu a{display:block;padding:.45rem 0;color:#94A3B8;font-size:.85rem;}
+.side-submenu a:hover{color:#fff;}
+
+.admin-main{flex-grow:1;min-width:0;}
+.admin-topbar{
+  background:var(--a-surface);border-bottom:1px solid var(--a-border);padding:.8rem 1.5rem;
+  display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:40;
+}
+.admin-content{padding:1.6rem;}
+
+/* ---- Cards ---- */
+.a-card{background:var(--a-surface);border:1px solid var(--a-border);border-radius:var(--a-radius);box-shadow:var(--a-shadow);}
+.stat-card{padding:1.3rem;display:flex;align-items:center;gap:1rem;}
+.stat-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+.stat-value{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.5rem;}
+.stat-label{color:var(--a-muted);font-size:.8rem;}
+.stat-trend{font-size:.75rem;font-weight:600;}
+
+/* ---- Tables ---- */
+.a-table{width:100%;border-collapse:collapse;}
+.a-table th{text-align:left;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--a-muted);padding:.8rem 1rem;border-bottom:1px solid var(--a-border);}
+.a-table td{padding:.9rem 1rem;border-bottom:1px solid var(--a-border);font-size:.9rem;vertical-align:middle;}
+.a-table tr:hover{background:var(--a-bg);}
+.row-thumb{width:42px;height:42px;border-radius:8px;object-fit:cover;}
+
+.status-pill{padding:.3rem .7rem;border-radius:999px;font-size:.75rem;font-weight:600;}
+.status-success{background:#DCFCE7;color:#15803D;}
+.status-warning{background:#FEF3C7;color:#B45309;}
+.status-danger{background:#FEE2E2;color:#B91C1C;}
+.status-info{background:#DBEAFE;color:#1D4ED8;}
+.status-neutral{background:#F1F5F9;color:#475569;}
+
+/* ---- Forms / buttons ---- */
+.a-btn{border:none;border-radius:10px;padding:.55rem 1.1rem;font-weight:600;font-size:.88rem;transition:.2s;}
+.a-btn-primary{background:var(--a-primary);color:#fff;}
+.a-btn-primary:hover{background:#1D4ED8;color:#fff;}
+.a-btn-outline{background:transparent;border:1px solid var(--a-border);color:var(--a-text);}
+.a-btn-outline:hover{background:var(--a-bg);}
+.a-btn-danger-soft{background:#FEE2E2;color:#B91C1C;}
+.a-icon-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--a-border);background:var(--a-surface);display:inline-flex;align-items:center;justify-content:center;color:var(--a-muted);transition:.2s;}
+.a-icon-btn:hover{background:var(--a-bg);color:var(--a-text);}
+
+.a-search{border:1px solid var(--a-border);border-radius:10px;padding:.5rem .9rem;display:flex;align-items:center;gap:.5rem;background:var(--a-bg);min-width:260px;}
+.a-search input{border:none;background:transparent;outline:none;font-size:.88rem;width:100%;color:var(--a-text);}
+
+.skeleton-row{height:48px;border-radius:8px;}
+
+/* ---------- Responsive admin layout ---------- */
+html,body{max-width:100%;overflow-x:hidden;}
+input,select,textarea{max-width:100%;}
+
+@media(max-width:991px){
+  .admin-sidebar{position:fixed;left:-260px;top:0;height:100vh;transition:left .25s ease;width:260px!important;box-shadow:var(--a-shadow);}
+  .admin-sidebar.mobile-open{left:0;}
+  .admin-sidebar.collapsed .side-label,.admin-sidebar.collapsed .side-brand-text,.admin-sidebar.collapsed .side-section-label{display:initial;}
+  .admin-content{padding:1.25rem;}
+}
+
+@media(max-width:767px){
+  .admin-topbar{padding:.65rem .75rem;gap:.5rem;}
+  .admin-topbar .a-icon-btn{width:32px;height:32px;}
+  .admin-content{padding:1rem .75rem;}
+  .a-card{border-radius:10px;}
+  .stat-card{padding:1rem;}
+  .stat-value{font-size:1.25rem;}
+  .a-table th,.a-table td{padding:.7rem .75rem;white-space:nowrap;}
+  .a-search{min-width:0;width:100%;}
+  .table-responsive{margin:0 -0.1rem;}
+}
+
+@media(max-width:430px){
+  .admin-topbar .btn-outline-primary{font-size:0;padding:.45rem;}
+  .admin-topbar .btn-outline-primary i{font-size:.85rem;margin:0!important;}
+  .admin-content{padding-left:.6rem;padding-right:.6rem;}
+}

@@ -1,0 +1,10 @@
+[
+  {"id":"SG10234","customer":"Amara Reyes","email":"amara@example.com","date":"2026-06-24","items":3,"total":64.20,"payment":"Credit Card","status":"Delivered"},
+  {"id":"SG10256","customer":"Daniel Cho","email":"daniel@example.com","date":"2026-06-27","items":2,"total":29.98,"payment":"PayPal","status":"Shipped"},
+  {"id":"SG10301","customer":"Priya Nair","email":"priya@example.com","date":"2026-06-29","items":5,"total":112.40,"payment":"UPI","status":"Processing"},
+  {"id":"SG10312","customer":"Marcus Webb","email":"marcus@example.com","date":"2026-06-29","items":1,"total":12.99,"payment":"Cash on Delivery","status":"Pending"},
+  {"id":"SG10298","customer":"Lena Kowalski","email":"lena@example.com","date":"2026-06-28","items":4,"total":89.50,"payment":"Debit Card","status":"Cancelled"},
+  {"id":"SG10287","customer":"Omar Siddiqui","email":"omar@example.com","date":"2026-06-26","items":2,"total":41.30,"payment":"Credit Card","status":"Delivered"},
+  {"id":"SG10265","customer":"Jordan Park","email":"jordan@example.com","date":"2026-06-25","items":6,"total":154.75,"payment":"PayPal","status":"Delivered"},
+  {"id":"SG10241","customer":"Sofia Russo","email":"sofia@example.com","date":"2026-06-23","items":3,"total":58.10,"payment":"UPI","status":"Refunded"}
+]

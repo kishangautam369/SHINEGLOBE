@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Shine Globe Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="assets/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="adminSidebar"></aside>
+  <div class="admin-main">
+    <div class="admin-topbar" id="adminTopbar"></div>
+    <div class="admin-content">
+
+      <div class="row g-3 mb-3" id="statCards"></div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-lg-8">
+          <div class="a-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3"><h6 class="fw-bold mb-0">Revenue Analytics</h6><select class="form-select form-select-sm" style="width:auto;"><option>Last 7 Days</option><option>Last 30 Days</option><option>This Year</option></select></div>
+            <canvas id="revenueChart" height="110"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="a-card p-4 h-100">
+            <h6 class="fw-bold mb-3">Category Sales</h6>
+            <canvas id="categoryChart" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-lg-4">
+          <div class="a-card p-4 h-100">
+            <h6 class="fw-bold mb-3">Orders Overview</h6>
+            <canvas id="ordersChart" height="180"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="a-card p-4 h-100">
+            <h6 class="fw-bold mb-3">Customer Growth</h6>
+            <canvas id="customerChart" height="180"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="a-card p-4 h-100">
+            <h6 class="fw-bold mb-3">Top Selling Products</h6>
+            <div id="topProducts"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="a-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0">Recent Orders</h6>
+          <a href="orders.html" class="a-btn a-btn-outline">View All</a>
+        </div>
+        <div class="table-responsive"><table class="a-table">
+          <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th></tr></thead>
+          <tbody id="recentOrdersBody"></tbody>
+        </table></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="assets/admin.js"></script>
+<script>
+ADMIN.initLayout('dashboard.html', 'Dashboard');
+
+const STATUS_CLASS = { Delivered:'status-success', Shipped:'status-info', Processing:'status-warning', Pending:'status-neutral', Cancelled:'status-danger', Refunded:'status-danger' };
+function renderDashboard(){
+  const products = Array.isArray(ADMIN.store('admin_products', [])) ? ADMIN.store('admin_products', []) : [];
+  const orders = Array.isArray(ADMIN.store('admin_orders', [])) ? ADMIN.store('admin_orders', []) : [];
+  const customers = Array.isArray(ADMIN.store('admin_customers', [])) ? ADMIN.store('admin_customers', []) : [];
+
+  const totalRevenue = orders.reduce((s,o)=>s+(Number(o.total)||0),0);
+  const pending = orders.filter(o=>o.status==='Pending'||o.status==='Processing').length;
+  const completed = orders.filter(o=>o.status==='Delivered').length;
+  const cancelled = orders.filter(o=>o.status==='Cancelled').length;
+  const lowStock = products.filter(p=>p.stock>0 && p.stock<10).length;
+  const outStock = products.filter(p=>p.stock===0).length;
+
+  const cards = [
+    {label:"Today's Sales", val:'₹'+(totalRevenue*0.04).toFixed(0), icon:'fa-cash-register', color:'#2563EB', bg:'#DBEAFE'},
+    {label:'Monthly Revenue', val:'₹'+totalRevenue.toFixed(0), icon:'fa-indian-rupee-sign', color:'#16A34A', bg:'#DCFCE7'},
+    {label:'Total Orders', val:orders.length, icon:'fa-receipt', color:'#F59E0B', bg:'#FEF3C7'},
+    {label:'Pending Orders', val:pending, icon:'fa-hourglass-half', color:'#DC2626', bg:'#FEE2E2'},
+    {label:'Total Customers', val:customers.length, icon:'fa-users', color:'#2563EB', bg:'#DBEAFE'},
+    {label:'Completed Orders', val:completed, icon:'fa-circle-check', color:'#16A34A', bg:'#DCFCE7'},
+    {label:'Low Stock Alerts', val:lowStock, icon:'fa-triangle-exclamation', color:'#F59E0B', bg:'#FEF3C7'},
+    {label:'Out of Stock', val:outStock, icon:'fa-box-open', color:'#DC2626', bg:'#FEE2E2'},
+  ];
+  document.getElementById('statCards').innerHTML = cards.map(c => `
+    <div class="col-6 col-lg-3">
+      <div class="a-card stat-card">
+        <div class="stat-icon" style="background:${c.bg};color:${c.color};"><i class="fa-solid ${c.icon}"></i></div>
+        <div><div class="stat-value">${c.val}</div><div class="stat-label">${c.label}</div></div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('recentOrdersBody').innerHTML = orders.slice(0,6).map(o => `
+    <tr><td class="fw-semibold">#${o.id}</td><td>${o.customer || 'Guest'}</td><td>${o.date || '—'}</td><td>₹${(Number(o.total)||0).toFixed(2)}</td>
+    <td><span class="status-pill ${STATUS_CLASS[o.status]||'status-neutral'}">${o.status || 'Pending'}</span></td></tr>`).join('');
+
+  const top = [...products].sort((a,b)=>b.reviews-a.reviews).slice(0,5);
+  document.getElementById('topProducts').innerHTML = top.map(p => `
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <img src="${p.image}" class="row-thumb">
+      <div class="flex-grow-1"><div class="small fw-semibold">${p.name}</div><div class="text-muted" style="font-size:.75rem;">${p.reviews} sold</div></div>
+      <div class="fw-bold small">₹${(Number(p.price)||0).toFixed(2)}</div>
+    </div>`).join('');
+
+  const orderSeries = orders.length ? [Math.min(orders.length, 8), Math.min(orders.length + 2, 12), Math.min(orders.length + 4, 16), Math.min(orders.length + 6, 20), Math.min(orders.length + 8, 24), Math.min(orders.length + 10, 28), Math.max(orders.length, 1)] : [0,0,0,0,0,0,0];
+  const customerSeries = customers.length ? [Math.min(customers.length, 5), Math.min(customers.length + 3, 10), Math.min(customers.length + 6, 15), Math.min(customers.length + 9, 20), Math.min(customers.length + 12, 25), Math.min(customers.length + 15, 30)] : [0,0,0,0,0,0];
+
+  new Chart(document.getElementById('revenueChart'), {
+    type:'line',
+    data:{ labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets:[{label:'Revenue', data:orderSeries, borderColor:'#2563EB', backgroundColor:'rgba(37,99,235,.1)', fill:true, tension:.4}]},
+    options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
+  });
+
+  const cats = [...new Set(products.map(p=>p.category))];
+  new Chart(document.getElementById('categoryChart'), {
+    type:'doughnut',
+    data:{ labels:cats.length ? cats : ['No data'], datasets:[{ data:cats.length ? cats.map(c=>products.filter(p=>p.category===c).length) : [1], backgroundColor:['#2563EB','#F59E0B','#16A34A','#DC2626','#7C3AED','#0EA5E9','#EC4899','#64748B'] }]},
+    options:{plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:10}}}}}
+  });
+
+  new Chart(document.getElementById('ordersChart'), {
+    type:'bar',
+    data:{ labels:['Delivered','Shipped','Processing','Pending','Cancelled','Refunded'], datasets:[{ data:[completed, orders.filter(o=>o.status==='Shipped').length, orders.filter(o=>o.status==='Processing').length, orders.filter(o=>o.status==='Pending').length, cancelled, orders.filter(o=>o.status==='Refunded').length], backgroundColor:'#2563EB', borderRadius:6 }]},
+    options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
+  });
+
+  new Chart(document.getElementById('customerChart'), {
+    type:'line',
+    data:{ labels:['Jan','Feb','Mar','Apr','May','Jun'], datasets:[{ label:'Customers', data:customerSeries, borderColor:'#16A34A', backgroundColor:'rgba(22,163,74,.1)', fill:true, tension:.4 }]},
+    options:{plugins:{legend:{display:false}}}
+  });
+}
+
+document.addEventListener('admin:dataReady', renderDashboard);
+document.addEventListener('admin:remoteUpdate', renderDashboard);
+</script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Us — Shine Globe</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div id="site-header"></div>
+<div class="breadcrumb-shine"><div class="container-xl small"><a href="../index.html" class="text-muted">Home</a> / <span class="text-dark fw-semibold">Contact</span></div></div>
+
+<section class="section-pad">
+  <div class="container-xl">
+    <div class="text-center mb-5"><span class="section-eyebrow">Get In Touch</span><h2 class="section-title">We'd Love to Hear From You</h2></div>
+    <div class="row g-4 mb-5 text-center">
+      <div class="col-md-4"><div class="filter-box"><i class="fa-solid fa-phone fa-2x text-primary mb-2"></i><h6 class="fw-bold">Phone</h6><p class="text-muted mb-0">+1 (555) 123-4567</p></div></div>
+      <div class="col-md-4"><div class="filter-box"><i class="fa-solid fa-envelope fa-2x text-primary mb-2"></i><h6 class="fw-bold">Email</h6><p class="text-muted mb-0">support@shineglobe.com</p></div></div>
+      <div class="col-md-4"><div class="filter-box"><i class="fa-solid fa-clock fa-2x text-primary mb-2"></i><h6 class="fw-bold">Working Hours</h6><p class="text-muted mb-0">Mon–Sat: 9AM – 7PM</p></div></div>
+    </div>
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="filter-box">
+          <h5 class="fw-bold mb-3">Send Us a Message</h5>
+          <form onsubmit="event.preventDefault(); SG.toast('Message sent! We will get back to you soon.'); this.reset();">
+            <div class="row g-3">
+              <div class="col-md-6"><input required class="form-control" placeholder="Your Name"></div>
+              <div class="col-md-6"><input required type="email" class="form-control" placeholder="Your Email"></div>
+              <div class="col-12"><input class="form-control" placeholder="Subject"></div>
+              <div class="col-12"><textarea required class="form-control" rows="5" placeholder="Your Message"></textarea></div>
+              <div class="col-12"><button class="btn btn-brand w-100 ripple">Send Message</button></div>
+            </div>
+          </form>
+          <div class="d-flex gap-2 mt-4">
+            <a href="#" class="social-circle bg-light text-dark"><i class="fa-brands fa-facebook-f"></i></a>
+            <a href="#" class="social-circle bg-light text-dark"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#" class="social-circle bg-light text-dark"><i class="fa-brands fa-twitter"></i></a>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=-74.03%2C40.69%2C-73.96%2C40.78&layer=mapnik" style="border:0;width:100%;height:100%;min-height:420px;border-radius:var(--radius-md);" loading="lazy" title="Shine Globe store location map"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<div id="site-footer"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/partials.js"></script>
+</body>
+</html>

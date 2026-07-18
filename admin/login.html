@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login — Shine Globe</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="assets/admin.css">
+<style>
+body{background:linear-gradient(135deg,#0F172A,#1E3A8A);min-height:100vh;display:flex;align-items:center;}
+.login-card{max-width:420px;width:100%;margin:0 auto;background:#fff;border-radius:18px;padding:2.5rem;box-shadow:0 20px 50px rgba(0,0,0,.3);}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="login-card">
+    <div class="text-center mb-4">
+      <img src="../assets/images/Shine Globe.jpeg" alt="Shine Globe logo" style="height:64px;width:auto;display:block;margin:0 auto;">
+      <h4 class="font-display fw-bold mt-2">Shine Globe Admin</h4>
+      <p class="text-muted small">Sign in to manage your store</p>
+    </div>
+    <div id="otpStep" style="display:none;">
+      <p class="small text-muted">Enter the 6-digit code sent to your email (demo: <strong>123456</strong>)</p>
+      <input class="form-control text-center mb-3" id="otpInput" maxlength="6" placeholder="••••••">
+      <button class="a-btn a-btn-primary w-100" onclick="verifyOtp()">Verify &amp; Continue</button>
+    </div>
+    <form id="adminLoginForm">
+      <div class="mb-3"><label class="form-label small fw-semibold">Email</label><input type="email" required class="form-control" value="admin@shineglobe.com"></div>
+      <div class="mb-3"><label class="form-label small fw-semibold">Password</label><input type="password" required class="form-control" value="admin123"></div>
+      <div class="d-flex justify-content-between mb-3">
+        <div class="form-check"><input class="form-check-input" type="checkbox" id="2fa" checked><label class="form-check-label small" for="2fa">Enable 2FA</label></div>
+        <a href="#" class="small">Forgot password?</a>
+      </div>
+      <button class="a-btn a-btn-primary w-100">Login to Dashboard</button>
+    </form>
+    <div class="mt-3 text-center">
+      <a href="../index.html" class="small text-decoration-none">← Back to Storefront</a>
+    </div>
+    <p class="text-center small text-muted mt-3 mb-0">Demo credentials are pre-filled — just click Login.</p>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script>
+document.getElementById('adminLoginForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  if(document.getElementById('2fa').checked){
+    this.style.display = 'none';
+    document.getElementById('otpStep').style.display = 'block';
+  } else {
+    sessionStorage.setItem('sg_admin_auth','1');
+    window.location.href = 'dashboard.html';
+  }
+});
+function verifyOtp(){
+  const val = document.getElementById('otpInput').value;
+  if(val === '369369'){
+    sessionStorage.setItem('sg_admin_auth','1');
+    window.location.href = 'dashboard.html';
+  } else {
+    alert('Invalid code. Try 369369 for this demo.');
+  }
+}
+</script>
+</body>
+</html>

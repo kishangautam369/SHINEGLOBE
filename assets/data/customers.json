@@ -1,0 +1,8 @@
+[
+  {"id":1,"name":"Amara Reyes","email":"amara@example.com","orders":12,"spent":842.30,"status":"Active","joined":"2024-02-11"},
+  {"id":2,"name":"Daniel Cho","email":"daniel@example.com","orders":5,"spent":231.10,"status":"Active","joined":"2024-08-03"},
+  {"id":3,"name":"Priya Nair","email":"priya@example.com","orders":8,"spent":410.75,"status":"Active","joined":"2025-01-19"},
+  {"id":4,"name":"Marcus Webb","email":"marcus@example.com","orders":2,"spent":58.40,"status":"Blocked","joined":"2025-04-22"},
+  {"id":5,"name":"Lena Kowalski","email":"lena@example.com","orders":15,"spent":1023.60,"status":"Active","joined":"2023-11-05"},
+  {"id":6,"name":"Omar Siddiqui","email":"omar@example.com","orders":3,"spent":97.20,"status":"Active","joined":"2025-09-14"}
+]

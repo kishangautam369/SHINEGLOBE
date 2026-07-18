@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Cart — Shine Globe</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div id="site-header"></div>
+<div class="breadcrumb-shine"><div class="container-xl small"><a href="../index.html" class="text-muted">Home</a> / <span class="text-dark fw-semibold">Cart</span></div></div>
+
+<section class="section-pad">
+  <div class="container-xl">
+    <h2 class="section-title mb-4">Shopping Cart</h2>
+    <div class="row g-4" id="cartContent"></div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/partials.js"></script>
+<script>
+let appliedCoupon = null;
+const COUPONS = { 'SAVE10': 0.10, 'SAVE20': 0.20, 'WELCOME5': 0.05 };
+
+function renderCart(products){
+  const cart = SG.getCart();
+  const container = document.getElementById('cartContent');
+  if(cart.length === 0){
+    container.innerHTML = `<div class="col-12"><div class="empty-state"><i class="fa-solid fa-cart-shopping"></i><h4 class="mt-3">Your cart is empty</h4><p class="text-muted">Looks like you haven't added anything yet.</p><a href="shop.html" class="btn btn-brand mt-2">Continue Shopping</a></div></div>`;
+    return;
+  }
+  const items = cart.map(ci => ({...products.find(p=>p.id===ci.id), qty: ci.qty})).filter(i=>i.id);
+  const subtotal = items.reduce((s,i)=>s + i.price*i.qty, 0);
+  const discount = appliedCoupon ? subtotal*appliedCoupon : 0;
+  const shipping = subtotal > 50 ? 0 : 5.99;
+  const tax = (subtotal - discount) * 0.08;
+  const total = subtotal - discount + shipping + tax;
+
+  container.innerHTML = `
+    <div class="col-lg-8">
+      ${items.map(i => `
+        <div class="cart-row d-flex gap-3 align-items-center">
+          <img src="${i.image}" style="width:90px;height:90px;object-fit:cover;border-radius:10px;">
+          <div class="flex-grow-1">
+            <a href="product.html?id=${i.id}" class="fw-semibold text-dark text-decoration-none">${i.name}</a>
+            <div class="text-muted small">${i.category}</div>
+            <div class="price-now">₹${i.price.toFixed(2)}</div>
+          </div>
+          <div class="qty-control">
+            <button onclick="updateQty(${i.id}, ${i.qty-1})">−</button>
+            <input type="text" value="${i.qty}" readonly>
+            <button onclick="updateQty(${i.id}, ${i.qty+1})">+</button>
+          </div>
+          <div class="fw-bold" style="width:80px;text-align:right;">₹${(i.price*i.qty).toFixed(2)}</div>
+          <button class="btn btn-sm text-danger" onclick="removeItem(${i.id})"><i class="fa-solid fa-trash"></i></button>
+        </div>`).join('')}
+      <a href="shop.html" class="btn btn-outline-brand mt-4"><i class="fa-solid fa-arrow-left me-2"></i>Continue Shopping</a>
+    </div>
+    <div class="col-lg-4">
+      <div class="filter-box">
+        <h5 class="fw-bold mb-3">Order Summary</h5>
+        <div class="d-flex mb-2"><input class="form-control form-control-sm me-2" id="couponInput" placeholder="Coupon code"><button class="btn btn-brand btn-sm" onclick="applyCoupon()">Apply</button></div>
+        <p class="small text-muted">Try: SAVE10, SAVE20, WELCOME5</p>
+        <hr>
+        <div class="d-flex justify-content-between mb-2"><span>Subtotal</span><span>₹${subtotal.toFixed(2)}</span></div>
+        ${discount>0?`<div class="d-flex justify-content-between mb-2 text-success"><span>Discount</span><span>-₹${discount.toFixed(2)}</span></div>`:''}
+        <div class="d-flex justify-content-between mb-2"><span>Shipping</span><span>${shipping===0?'Free':'₹'+shipping.toFixed(2)}</span></div>
+        <div class="d-flex justify-content-between mb-2"><span>Tax (8%)</span><span>₹${tax.toFixed(2)}</span></div>
+        <hr>
+        <div class="d-flex justify-content-between fw-bold fs-5 mb-3"><span>Total</span><span>₹${total.toFixed(2)}</span></div>
+        <a href="checkout.html" class="btn btn-brand w-100">Proceed to Checkout <i class="fa-solid fa-arrow-right ms-1"></i></a>
+      </div>
+    </div>`;
+}
+
+function updateQty(id, qty){
+  if(qty < 1){ SG.removeFromCart(id); } else { SG.updateCartQty(id, qty); }
+  SG.loadProducts().then(renderCart);
+}
+function removeItem(id){ SG.removeFromCart(id); SG.loadProducts().then(renderCart); }
+function applyCoupon(){
+  const code = document.getElementById('couponInput').value.trim().toUpperCase();
+  if(COUPONS[code]){ appliedCoupon = COUPONS[code]; SG.toast(`Coupon applied: ${code}`); }
+  else { appliedCoupon = null; SG.toast('Invalid coupon code', 'error'); }
+  SG.loadProducts().then(renderCart);
+}
+
+document.addEventListener('sg:productsReady', (e) => renderCart(e.detail));
+</script>
+</body>
+</html>

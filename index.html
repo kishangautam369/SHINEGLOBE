@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shine Globe — Everything You Need, Delivered with Quality</title>
+<meta name="description" content="Shine Globe is your one-stop store for disposable products, cleaning supplies, hygiene products, household essentials, packaging, grocery and office supplies.">
+<meta property="og:title" content="Shine Globe">
+<meta property="og:description" content="Everything You Need, Delivered with Quality.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛍️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.css" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<!-- HERO -->
+<header class="hero-shine section-pad">
+  <div class="container-xl row align-items-center g-5">
+    <div class="col-lg-6" data-aos="fade-right">
+      <span class="offer-badge"><i class="fa-solid fa-bolt"></i> Flash Sale — Up to 40% Off</span>
+      <h1 class="display-4 fw-bold mt-3 mb-3">Everything You Need,<br>Delivered with <span style="color:var(--c-accent);">Quality</span>.</h1>
+      <p class="lead" style="color:#CBD5E1;">From hygiene essentials to office supplies — Shine Globe brings premium daily products to your doorstep, fast.</p>
+      <div class="d-flex gap-3 mt-4 flex-wrap">
+        <a href="pages/shop.html" class="btn btn-accent btn-lg ripple">Shop Now <i class="fa-solid fa-arrow-right ms-1"></i></a>
+        <a href="pages/categories.html" class="btn btn-outline-light btn-lg">Browse Categories</a>
+      </div>
+    </div>
+    <div class="col-lg-6 text-center" data-aos="fade-left">
+      <img src="https://images.unsplash.com/photo-1607082349566-187342175e2f?w=700" class="hero-img-float rounded-4 shadow-lg" alt="Shine Globe everyday essentials and household products">
+    </div>
+  </div>
+</header>
+
+<!-- CATEGORIES -->
+<section class="section-pad">
+  <div class="container-xl">
+    <div class="text-center mb-5" data-aos="fade-up">
+      <span class="section-eyebrow">Browse</span>
+      <h2 class="section-title">Shop by Category</h2>
+    </div>
+    <div class="row g-3" id="categoryGrid"></div>
+  </div>
+</section>
+
+<!-- FEATURED PRODUCTS -->
+<section class="section-pad bg-surface">
+  <div class="container-xl">
+    <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2" data-aos="fade-up">
+      <div><span class="section-eyebrow">Handpicked</span><h2 class="section-title">Featured Products</h2></div>
+      <a href="pages/shop.html" class="btn btn-outline-brand">View All <i class="fa-solid fa-arrow-right ms-1"></i></a>
+    </div>
+    <div class="row g-4" id="featuredGrid"></div>
+  </div>
+</section>
+
+<!-- FLASH SALE -->
+<section class="section-pad">
+  <div class="container-xl">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4" data-aos="fade-up">
+      <div><span class="section-eyebrow">Hurry Up</span><h2 class="section-title">Flash Sale</h2></div>
+      <div class="d-flex gap-2" id="countdown">
+        <div class="countdown-box"><div class="num" id="cd-h">00</div><div class="lbl">Hrs</div></div>
+        <div class="countdown-box"><div class="num" id="cd-m">00</div><div class="lbl">Min</div></div>
+        <div class="countdown-box"><div class="num" id="cd-s">00</div><div class="lbl">Sec</div></div>
+      </div>
+    </div>
+    <div class="row g-4" id="flashGrid"></div>
+  </div>
+</section>
+
+<!-- BEST SELLERS / NEW ARRIVALS TABS -->
+<section class="section-pad bg-surface">
+  <div class="container-xl">
+    <ul class="nav nav-pills justify-content-center mb-4 gap-2" data-aos="fade-up">
+      <li class="nav-item"><button class="nav-link active btn btn-outline-brand" data-tab="best">Best Sellers</button></li>
+      <li class="nav-item"><button class="nav-link btn btn-outline-brand" data-tab="new">New Arrivals</button></li>
+    </ul>
+    <div class="row g-4" id="tabGrid"></div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="section-pad">
+  <div class="container-xl">
+    <div class="text-center mb-5" data-aos="fade-up"><span class="section-eyebrow">Testimonials</span><h2 class="section-title">What Our Customers Say</h2></div>
+    <div class="swiper reviewSwiper" data-aos="fade-up">
+      <div class="swiper-wrapper pb-5">
+        <div class="swiper-slide"><div class="review-card"><div class="product-rating mb-2">★★★★★</div><p>"Shine Globe has become my go-to for household and hygiene essentials. Fast delivery and great prices every time."</p><strong>— Amara Reyes</strong></div></div>
+        <div class="swiper-slide"><div class="review-card"><div class="product-rating mb-2">★★★★★</div><p>"The medical supplies section saved me during an emergency. Quality products, well packaged, arrived on time."</p><strong>— Daniel Cho</strong></div></div>
+        <div class="swiper-slide"><div class="review-card"><div class="product-rating mb-2">★★★★☆</div><p>"Love the office supplies bundle deals. My small business now orders monthly through Shine Globe."</p><strong>— Priya Nair</strong></div></div>
+        <div class="swiper-slide"><div class="review-card"><div class="product-rating mb-2">★★★★★</div><p>"Clean, easy checkout and the packaging products are top notch for my shipping needs."</p><strong>— Marcus Webb</strong></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BRANDS -->
+<section class="py-5 bg-surface">
+  <div class="container-xl d-flex flex-wrap justify-content-around align-items-center gap-4 opacity-75" data-aos="fade-up">
+    <i class="fa-solid fa-shield-heart fa-2x"></i><span class="fw-bold">SafeGuard</span>
+    <i class="fa-solid fa-spray-can-sparkles fa-2x"></i><span class="fw-bold">CleanPro</span>
+    <i class="fa-solid fa-house-medical fa-2x"></i><span class="fw-bold">MediCare</span>
+    <i class="fa-solid fa-pump-soap fa-2x"></i><span class="fw-bold">PureClean</span>
+    <i class="fa-solid fa-box fa-2x"></i><span class="fw-bold">PackRight</span>
+  </div>
+</section>
+
+<!-- INSTAGRAM GALLERY -->
+<section class="section-pad">
+  <div class="container-xl">
+    <div class="text-center mb-4" data-aos="fade-up"><span class="section-eyebrow">@shineglobe</span><h2 class="section-title">Follow Us on Instagram</h2></div>
+    <div class="row g-2">
+      <div class="col-6 col-md-2" data-aos="zoom-in"><img src="https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=300" class="rounded-3 w-100" style="aspect-ratio:1;object-fit:cover;" alt="Instagram post"></div>
+      <div class="col-6 col-md-2" data-aos="zoom-in"><img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=300" class="rounded-3 w-100" style="aspect-ratio:1;object-fit:cover;" alt="Instagram post"></div>
+      <div class="col-6 col-md-2" data-aos="zoom-in"><img src="https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300" class="rounded-3 w-100" style="aspect-ratio:1;object-fit:cover;" alt="Instagram post"></div>
+      <div class="col-6 col-md-2" data-aos="zoom-in"><img src="https://images.unsplash.com/photo-1584634731339-252c581abfc5?w=300" class="rounded-3 w-100" style="aspect-ratio:1;object-fit:cover;" alt="Instagram post"></div>
+      <div class="col-6 col-md-2" data-aos="zoom-in"><img src="https://images.unsplash.com/photo-1583947581924-860bda6a26df?w=300" class="rounded-3 w-100" style="aspect-ratio:1;object-fit:cover;" alt="Instagram post"></div>
+      <div class="col-6 col-md-2" data-aos="zoom-in"><img src="https://images.unsplash.com/photo-1610450949065-1f2841536c88?w=300" class="rounded-3 w-100" style="aspect-ratio:1;object-fit:cover;" alt="Instagram post"></div>
+    </div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.js"></script>
+<script src="assets/js/main.js?v=20260717"></script>
+<script src="assets/js/partials.js?v=20260717"></script>
+<script>
+const CATEGORY_ICONS = {
+  "Disposable Products":"fa-spray-can", "Cleaning Supplies":"fa-broom", "Medical Supplies":"fa-kit-medical",
+  "Hygiene Products":"fa-pump-soap", "Household":"fa-house", "Packaging":"fa-box-open",
+  "Grocery":"fa-basket-shopping", "Office Supplies":"fa-briefcase"
+};
+
+function renderCategoryGrid(products){
+  const categories = SG.getCategories();
+  document.getElementById('categoryGrid').innerHTML = categories.map(c => {
+    const categoryName = c.name;
+    const count = products.filter(p => p.category === categoryName).length;
+    return `
+    <div class="col-6 col-md-3" data-aos="fade-up">
+      <a href="pages/shop.html?cat=${encodeURIComponent(categoryName)}" class="cat-card d-block text-decoration-none text-dark">
+        <div class="cat-icon"><i class="fa-solid ${c.icon || CATEGORY_ICONS[categoryName] || 'fa-tag'}"></i></div>
+        <div class="fw-semibold">${categoryName}</div>
+        <small class="text-muted">${count} items</small>
+      </a>
+    </div>`;
+  }).join('');
+}
+
+document.addEventListener('sg:productsReady', (e) => {
+  const products = e.detail;
+  renderCategoryGrid(products);
+
+  // Featured (top rated)
+  const featured = [...products].sort((a,b)=>b.rating-a.rating).slice(0,8);
+  document.getElementById('featuredGrid').innerHTML = featured.map(p => `<div class="col-6 col-md-4 col-lg-3">${SG.productCard(p,'pages/')}</div>`).join('');
+
+  // Flash sale (discounted)
+  const flash = products.filter(p=>p.oldPrice).slice(0,4);
+  document.getElementById('flashGrid').innerHTML = flash.map(p => `<div class="col-6 col-md-3">${SG.productCard(p,'pages/')}</div>`).join('');
+
+  // Tabs
+  const best = [...products].sort((a,b)=>b.reviews-a.reviews).slice(0,8);
+  const fresh = [...products].filter(p=>p.badge==='New').concat([...products].slice(-4)).slice(0,8);
+  function renderTab(tab){
+    const list = tab === 'best' ? best : fresh;
+    document.getElementById('tabGrid').innerHTML = list.map(p => `<div class="col-6 col-md-4 col-lg-3">${SG.productCard(p,'pages/')}</div>`).join('');
+    if(window.AOS) AOS.refresh();
+  }
+  renderTab('best');
+  document.querySelectorAll('[data-tab]').forEach(btn => btn.addEventListener('click', function(){
+    document.querySelectorAll('[data-tab]').forEach(b=>b.classList.remove('active'));
+    this.classList.add('active');
+    renderTab(this.dataset.tab);
+  }));
+
+  if(window.AOS) AOS.refresh();
+});
+
+document.addEventListener('sg:categoriesReady', (e) => {
+  const products = SG.products || [];
+  renderCategoryGrid(products);
+});
+
+// Countdown timer (resets to 8 hours from now, persisted)
+(function countdown(){
+  let end = localStorage.getItem('sg_flash_end');
+  if(!end || Date.now() > Number(end)){ end = Date.now() + 8*3600*1000; localStorage.setItem('sg_flash_end', end); }
+  function tick(){
+    const diff = Math.max(0, Number(end) - Date.now());
+    const h = String(Math.floor(diff/3600000)).padStart(2,'0');
+    const m = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+    const s = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+    const eh=document.getElementById('cd-h'), em=document.getElementById('cd-m'), es=document.getElementById('cd-s');
+    if(eh){eh.textContent=h; em.textContent=m; es.textContent=s;}
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+
+new Swiper('.reviewSwiper', { slidesPerView:1, spaceBetween:24, loop:true, autoplay:{delay:4000}, breakpoints:{768:{slidesPerView:2},1200:{slidesPerView:3}} });
+</script>
+</body>
+</html>

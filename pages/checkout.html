@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout — Shine Globe</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div id="site-header"></div>
+<div class="breadcrumb-shine"><div class="container-xl small"><a href="../index.html" class="text-muted">Home</a> / <a href="cart.html" class="text-muted">Cart</a> / <span class="text-dark fw-semibold">Checkout</span></div></div>
+
+<section class="section-pad">
+  <div class="container-xl">
+    <h2 class="section-title mb-4">Checkout</h2>
+    <form class="row g-4" id="checkoutForm">
+      <div class="col-lg-8">
+        <div class="filter-box mb-4">
+          <h5 class="fw-bold mb-3"><i class="fa-solid fa-file-invoice me-2 text-primary"></i>Billing Information</h5>
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">Full Name</label><input required class="form-control" placeholder="Jane Doe"></div>
+            <div class="col-md-6"><label class="form-label">Email</label><input required type="email" class="form-control" placeholder="jane@example.com"></div>
+            <div class="col-md-6"><label class="form-label">Phone</label><input required class="form-control" placeholder="+1 (555) 000-0000"></div>
+            <div class="col-md-6"><label class="form-label">Country</label><select class="form-select"><option>United States</option><option>India</option><option>United Kingdom</option><option>Canada</option></select></div>
+          </div>
+        </div>
+
+        <div class="filter-box mb-4">
+          <h5 class="fw-bold mb-3"><i class="fa-solid fa-truck me-2 text-primary"></i>Shipping Address</h5>
+          <div class="row g-3">
+            <div class="col-12"><label class="form-label">Street Address</label><input required class="form-control" placeholder="123 Main Street"></div>
+            <div class="col-md-4"><label class="form-label">City</label><input required class="form-control"></div>
+            <div class="col-md-4"><label class="form-label">State</label><input required class="form-control"></div>
+            <div class="col-md-4"><label class="form-label">ZIP Code</label><input required class="form-control"></div>
+          </div>
+        </div>
+
+        <div class="filter-box">
+          <h5 class="fw-bold mb-3"><i class="fa-solid fa-credit-card me-2 text-primary"></i>Payment Method</h5>
+          <div class="row g-2">
+            <div class="col-6 col-md-3"><div class="form-check border rounded-3 p-3"><input class="form-check-input" type="radio" name="pay" id="payCard" checked><label class="form-check-label" for="payCard"><i class="fa-solid fa-credit-card d-block mb-1"></i>Credit Card</label></div></div>
+            <div class="col-6 col-md-3"><div class="form-check border rounded-3 p-3"><input class="form-check-input" type="radio" name="pay" id="payDebit"><label class="form-check-label" for="payDebit"><i class="fa-solid fa-credit-card d-block mb-1"></i>Debit Card</label></div></div>
+            <div class="col-6 col-md-3"><div class="form-check border rounded-3 p-3"><input class="form-check-input" type="radio" name="pay" id="payUpi"><label class="form-check-label" for="payUpi"><i class="fa-solid fa-mobile-screen d-block mb-1"></i>UPI</label></div></div>
+            <div class="col-6 col-md-3"><div class="form-check border rounded-3 p-3"><input class="form-check-input" type="radio" name="pay" id="payPaypal"><label class="form-check-label" for="payPaypal"><i class="fa-brands fa-paypal d-block mb-1"></i>PayPal</label></div></div>
+            <div class="col-6 col-md-3"><div class="form-check border rounded-3 p-3"><input class="form-check-input" type="radio" name="pay" id="payCod"><label class="form-check-label" for="payCod"><i class="fa-solid fa-money-bill-wave d-block mb-1"></i>Cash on Delivery</label></div></div>
+          </div>
+          <div id="cardFields" class="row g-3 mt-3">
+            <div class="col-12"><label class="form-label">Card Number</label><input class="form-control" placeholder="1234 5678 9012 3456"></div>
+            <div class="col-6"><label class="form-label">Expiry</label><input class="form-control" placeholder="MM/YY"></div>
+            <div class="col-6"><label class="form-label">CVV</label><input class="form-control" placeholder="123"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="filter-box">
+          <h5 class="fw-bold mb-3">Order Summary</h5>
+          <div id="checkoutItems"></div>
+          <hr>
+          <div class="d-flex justify-content-between mb-2"><span>Subtotal</span><span id="coSubtotal"></span></div>
+          <div class="d-flex justify-content-between mb-2"><span>Shipping</span><span id="coShipping"></span></div>
+          <div class="d-flex justify-content-between mb-2"><span>Tax</span><span id="coTax"></span></div>
+          <hr>
+          <div class="d-flex justify-content-between fw-bold fs-5 mb-3"><span>Total</span><span id="coTotal"></span></div>
+          <button type="submit" class="btn btn-brand w-100 ripple">Place Order <i class="fa-solid fa-lock ms-1"></i></button>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/partials.js"></script>
+<script>
+document.addEventListener('sg:productsReady', (e) => {
+  const products = e.detail;
+  const cart = SG.getCart();
+  if(cart.length === 0){ document.getElementById('checkoutItems').innerHTML = '<p class="text-muted small">Your cart is empty.</p>'; return; }
+  const items = cart.map(ci => ({...products.find(p=>p.id===ci.id), qty: ci.qty})).filter(i=>i.id);
+  const subtotal = items.reduce((s,i)=>s+i.price*i.qty,0);
+  const shipping = subtotal>50?0:5.99;
+  const tax = subtotal*0.08;
+  const total = subtotal+shipping+tax;
+  document.getElementById('checkoutItems').innerHTML = items.map(i => `<div class="d-flex justify-content-between small mb-2"><span>${i.name} × ${i.qty}</span><span>₹${(i.price*i.qty).toFixed(2)}</span></div>`).join('');
+  document.getElementById('coSubtotal').textContent = '₹'+subtotal.toFixed(2);
+  document.getElementById('coShipping').textContent = shipping===0?'Free':'₹'+shipping.toFixed(2);
+  document.getElementById('coTax').textContent = '₹'+tax.toFixed(2);
+  document.getElementById('coTotal').textContent = '₹'+total.toFixed(2);
+});
+
+document.querySelectorAll('input[name="pay"]').forEach(r => r.addEventListener('change', function(){
+  document.getElementById('cardFields').style.display = (this.id==='payCard'||this.id==='payDebit') ? 'flex' : 'none';
+}));
+
+document.getElementById('checkoutForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  SG.setCart([]);
+  window.location.href = 'order-success.html';
+});
+</script>
+</body>
+</html>

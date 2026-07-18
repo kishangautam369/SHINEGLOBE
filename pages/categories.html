@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Categories — Shine Globe</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div id="site-header"></div>
+<div class="breadcrumb-shine"><div class="container-xl small"><a href="../index.html" class="text-muted">Home</a> / <span class="text-dark fw-semibold">Categories</span></div></div>
+<section class="section-pad">
+  <div class="container-xl">
+    <div class="text-center mb-5" data-aos="fade-up"><span class="section-eyebrow">Explore</span><h2 class="section-title">All Categories</h2></div>
+    <div class="row g-4" id="catFullGrid"></div>
+  </div>
+</section>
+<div id="site-footer"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+<script src="../assets/js/main.js?v=20260717"></script>
+<script src="../assets/js/partials.js?v=20260717"></script>
+<script>
+const ICONS = {
+  "Disposable Products":"fa-spray-can", "Cleaning Supplies":"fa-broom", "Medical Supplies":"fa-kit-medical",
+  "Hygiene Products":"fa-pump-soap", "Household":"fa-house", "Packaging":"fa-box-open",
+  "Grocery":"fa-basket-shopping", "Office Supplies":"fa-briefcase"
+};
+function renderCategoryPage(products){
+  const categories = SG.getCategories();
+  document.getElementById('catFullGrid').innerHTML = categories.map(c => {
+    const sample = products.find(p => p.category === c.name);
+    return `<div class="col-6 col-md-3" data-aos="fade-up">
+      <a href="shop.html?cat=${encodeURIComponent(c.name)}" class="product-card d-block text-decoration-none text-dark">
+        <div class="product-img-wrap"><img src="${sample?.image || 'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600'}" alt="${c.name}"></div>
+        <div class="product-info text-center">
+          <div class="cat-icon mx-auto mb-2" style="width:46px;height:46px;font-size:1.1rem;"><i class="fa-solid ${c.icon || ICONS[c.name] || 'fa-tag'}"></i></div>
+          <div class="fw-semibold">${c.name}</div>
+          <small class="text-muted">${products.filter(p => p.category === c.name).length} products</small>
+        </div>
+      </a></div>`;
+  }).join('');
+  if(window.AOS) AOS.refresh();
+}
+
+document.addEventListener('sg:productsReady', (e) => {
+  renderCategoryPage(e.detail);
+});
+
+document.addEventListener('sg:categoriesReady', () => {
+  renderCategoryPage(SG.products || []);
+});
+</script>
+</body>
+</html>

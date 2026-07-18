@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Products — Shine Globe Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="assets/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="adminSidebar"></aside>
+  <div class="admin-main">
+    <div class="admin-topbar" id="adminTopbar"></div>
+    <div class="admin-content">
+
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <h5 class="fw-bold mb-0">Products <span class="text-muted small fw-normal" id="productCountLabel"></span></h5>
+        <div class="d-flex gap-2">
+          <button class="a-btn a-btn-outline"><i class="fa-solid fa-file-export me-1"></i>Export</button>
+          <button class="a-btn a-btn-primary" onclick="openProductModal()"><i class="fa-solid fa-plus me-1"></i>Add Product</button>
+        </div>
+      </div>
+
+      <div class="a-card p-3 mb-3 d-flex flex-wrap gap-2 align-items-center">
+        <div class="a-search"><i class="fa-solid fa-magnifying-glass text-muted"></i><input id="prodSearch" placeholder="Search products..."></div>
+        <select class="form-select form-select-sm" style="width:auto;" id="prodCatFilter"><option value="">All Categories</option></select>
+        <select class="form-select form-select-sm" style="width:auto;" id="prodStatusFilter">
+          <option value="">All Status</option><option value="active">Active</option><option value="disabled">Disabled</option>
+        </select>
+        <button class="a-btn a-btn-danger-soft ms-auto" id="bulkDeleteBtn" style="display:none;"><i class="fa-solid fa-trash me-1"></i>Delete Selected</button>
+      </div>
+
+      <div class="a-card">
+        <div class="table-responsive"><table class="a-table">
+          <thead><tr>
+            <th><input type="checkbox" id="selectAll"></th><th>Image</th><th>Name</th><th>SKU</th><th>Category</th><th>Price</th><th>Qty</th><th>Status</th><th>Rating</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="productTableBody"></tbody>
+        </table></div>
+      </div>
+      <nav class="mt-3"><ul class="pagination pagination-sm justify-content-center" id="prodPagination"></ul></nav>
+    </div>
+  </div>
+</div>
+
+<!-- Product Modal -->
+<div class="modal fade" id="productModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="productModalTitle">Add Product</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <form id="productForm">
+          <input type="hidden" id="pf_id">
+          <div class="row g-3">
+            <div class="col-md-8"><label class="form-label small fw-semibold">Product Name</label><input required class="form-control" id="pf_name"></div>
+            <div class="col-md-4"><label class="form-label small fw-semibold">SKU</label><input class="form-control" id="pf_sku" placeholder="Auto-generated"></div>
+            <div class="col-md-6"><label class="form-label small fw-semibold">Category</label><input required class="form-control" id="pf_category" list="catList"><datalist id="catList"></datalist></div>
+            <div class="col-md-6"><label class="form-label small fw-semibold">Brand</label><input class="form-control" id="pf_brand"></div>
+            <div class="col-md-4"><label class="form-label small fw-semibold">Price (₹)</label><input required type="number" step="0.01" class="form-control" id="pf_price"></div>
+            <div class="col-md-4"><label class="form-label small fw-semibold">Old Price (₹)</label><input type="number" step="0.01" class="form-control" id="pf_oldprice"></div>
+            <div class="col-md-4"><label class="form-label small fw-semibold">Stock Qty</label><input required type="number" class="form-control" id="pf_stock"></div>
+            <div class="col-md-6"><label class="form-label small fw-semibold">Image URL</label><input class="form-control" id="pf_image"></div>
+            <div class="col-md-6"><label class="form-label small fw-semibold">Badge</label>
+              <select class="form-select" id="pf_badge"><option value="">None</option><option>New</option><option>Sale</option><option>Best Seller</option></select>
+            </div>
+            <div class="col-12"><label class="form-label small fw-semibold">Description</label><textarea class="form-control" id="pf_desc" rows="3"></textarea></div>
+            <div class="col-12"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="pf_active" checked><label class="form-check-label small">Product Active</label></div></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer"><button class="a-btn a-btn-outline" data-bs-dismiss="modal">Cancel</button><button class="a-btn a-btn-primary" onclick="saveProduct()">Save Product</button></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="assets/admin.js"></script>
+<script>
+ADMIN.initLayout('products.html', 'Products');
+let allProducts = [], page = 1, perPage = 8, currentFilters = {};
+
+document.addEventListener('admin:dataReady', () => {
+  allProducts = ADMIN.store('admin_products', []);
+  const cats = [...new Set(allProducts.map(p=>p.category))];
+  document.getElementById('prodCatFilter').innerHTML += cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  document.getElementById('catList').innerHTML = cats.map(c=>`<option value="${c}">`).join('');
+  render();
+
+  document.getElementById('prodSearch').addEventListener('input', () => { page=1; render(); });
+  document.getElementById('prodCatFilter').addEventListener('change', () => { page=1; render(); });
+  document.getElementById('prodStatusFilter').addEventListener('change', () => { page=1; render(); });
+  document.getElementById('selectAll').addEventListener('change', function(){
+    document.querySelectorAll('.row-check').forEach(cb => cb.checked = this.checked);
+    toggleBulkBtn();
+  });
+});
+
+function toggleBulkBtn(){
+  const any = [...document.querySelectorAll('.row-check')].some(cb=>cb.checked);
+  document.getElementById('bulkDeleteBtn').style.display = any ? 'inline-block' : 'none';
+}
+
+function filteredList(){
+  const q = document.getElementById('prodSearch').value.toLowerCase();
+  const cat = document.getElementById('prodCatFilter').value;
+  const status = document.getElementById('prodStatusFilter').value;
+  return allProducts.filter(p =>
+    (!q || p.name.toLowerCase().includes(q)) &&
+    (!cat || p.category===cat) &&
+    (!status || (status==='active' ? p.active!==false : p.active===false))
+  );
+}
+
+function render(){
+  const list = filteredList();
+  document.getElementById('productCountLabel').textContent = `(${list.length} total)`;
+  const totalPages = Math.max(1, Math.ceil(list.length/perPage));
+  page = Math.min(page, totalPages);
+  const items = list.slice((page-1)*perPage, page*perPage);
+
+  document.getElementById('productTableBody').innerHTML = items.length ? items.map(p => `
+    <tr>
+      <td><input type="checkbox" class="row-check" data-id="${p.id}" onchange="toggleBulkBtn()"></td>
+      <td><img src="${p.image}" class="row-thumb"></td>
+      <td class="fw-semibold">${p.name}</td>
+      <td class="text-muted small">SG-${String(p.id).padStart(5,'0')}</td>
+      <td>${p.category}</td>
+      <td>₹${p.price.toFixed(2)}</td>
+      <td>${p.stock}</td>
+      <td><span class="status-pill ${p.active===false?'status-neutral':'status-success'}">${p.active===false?'Disabled':'Active'}</span></td>
+      <td>★ ${p.rating}</td>
+      <td>
+        <button class="a-icon-btn" onclick="openProductModal(${p.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+        <button class="a-icon-btn" onclick="duplicateProduct(${p.id})" title="Duplicate"><i class="fa-solid fa-copy"></i></button>
+        <button class="a-icon-btn" onclick="toggleActive(${p.id})" title="Enable/Disable"><i class="fa-solid fa-power-off"></i></button>
+        <button class="a-icon-btn" onclick="deleteProduct(${p.id})" title="Delete"><i class="fa-solid fa-trash text-danger"></i></button>
+      </td>
+    </tr>`).join('') : `<tr><td colspan="10" class="text-center text-muted py-5">No products match your filters.</td></tr>`;
+
+  let pages = '';
+  for(let i=1;i<=totalPages;i++) pages += `<li class="page-item ${i===page?'active':''}"><button class="page-link" onclick="page=${i};render()">${i}</button></li>`;
+  document.getElementById('prodPagination').innerHTML = pages;
+}
+
+function openProductModal(id){
+  // Find product — undefined = Add mode, number = Edit mode
+  const p = (id !== undefined) ? allProducts.find(x => x.id === Number(id)) : null;
+
+  // Fill every field FIRST, then show
+  document.getElementById('productModalTitle').textContent = p ? 'Edit Product' : 'Add Product';
+  document.getElementById('pf_id').value       = p ? p.id : '';
+  document.getElementById('pf_name').value     = p ? p.name : '';
+  document.getElementById('pf_sku').value      = p ? 'SG-' + String(p.id).padStart(5,'0') : '';
+  document.getElementById('pf_category').value = p ? p.category : '';
+  document.getElementById('pf_brand').value    = p ? (p.brand || '') : '';
+  document.getElementById('pf_price').value    = p ? p.price : '';
+  document.getElementById('pf_oldprice').value = p ? (p.oldPrice || '') : '';
+  document.getElementById('pf_stock').value    = p ? p.stock : '';
+  document.getElementById('pf_image').value    = p ? (p.image || '') : '';
+  document.getElementById('pf_badge').value    = p ? (p.badge || '') : '';
+  document.getElementById('pf_desc').value     = p ? (p.desc || '') : '';
+  document.getElementById('pf_active').checked = p ? p.active !== false : true;
+
+  // Always dispose old instance first to avoid stale state crashes
+  const modalEl = document.getElementById('productModal');
+  const existing = bootstrap.Modal.getInstance(modalEl);
+  if (existing) existing.dispose();
+  new bootstrap.Modal(modalEl).show();
+}
+
+async function saveProduct(){
+  const id = document.getElementById('pf_id').value;
+  const data = {
+    name: document.getElementById('pf_name').value,
+    category: document.getElementById('pf_category').value,
+    brand: document.getElementById('pf_brand').value,
+    price: parseFloat(document.getElementById('pf_price').value) || 0,
+    oldPrice: parseFloat(document.getElementById('pf_oldprice').value) || null,
+    stock: parseInt(document.getElementById('pf_stock').value)||0,
+    image: document.getElementById('pf_image').value || 'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600',
+    badge: document.getElementById('pf_badge').value,
+    desc: document.getElementById('pf_desc').value,
+    active: document.getElementById('pf_active').checked,
+    rating: 4.5, reviews: 0
+  };
+  if(id){
+    const idx = allProducts.findIndex(p=>p.id===Number(id));
+    allProducts[idx] = { ...allProducts[idx], ...data };
+  } else {
+    const newId = Math.max(...allProducts.map(p=>p.id), 0) + 1;
+    allProducts.push({ id:newId, ...data });
+  }
+  try { allProducts = await ADMIN.saveCollection('products', allProducts); }
+  catch(error) { console.error(error); alert('Product was not saved to the shared server.'); return; }
+  const modalEl = document.getElementById('productModal');
+  const m = bootstrap.Modal.getInstance(modalEl);
+  if (m) m.hide();
+  render();
+}
+
+async function duplicateProduct(id){
+  const p = allProducts.find(x=>x.id===id);
+  const newId = Math.max(...allProducts.map(p=>p.id), 0) + 1;
+  allProducts.push({ ...p, id:newId, name: p.name + ' (Copy)' });
+  try { allProducts = await ADMIN.saveCollection('products', allProducts); }
+  catch(error) { console.error(error); alert('Product was not saved to the shared server.'); return; }
+  render();
+}
+async function toggleActive(id){
+  const p = allProducts.find(x=>x.id===id);
+  p.active = p.active===false ? true : false;
+  try { allProducts = await ADMIN.saveCollection('products', allProducts); }
+  catch(error) { console.error(error); alert('Product was not saved to the shared server.'); return; }
+  render();
+}
+async function deleteProduct(id){
+  if(!confirm('Delete this product? This cannot be undone.')) return;
+  allProducts = allProducts.filter(p=>p.id!==id);
+  try { allProducts = await ADMIN.saveCollection('products', allProducts); }
+  catch(error) { console.error(error); alert('Product was not deleted from the shared server.'); return; }
+  render();
+}
+document.getElementById('bulkDeleteBtn')?.addEventListener('click', async () => {
+  const ids = [...document.querySelectorAll('.row-check:checked')].map(cb=>Number(cb.dataset.id));
+  if(!confirm(`Delete ${ids.length} selected products?`)) return;
+  allProducts = allProducts.filter(p=>!ids.includes(p.id));
+  try { allProducts = await ADMIN.saveCollection('products', allProducts); }
+  catch(error) { console.error(error); alert('Products were not deleted from the shared server.'); return; }
+  render();
+});
+document.addEventListener('admin:remoteUpdate', event => {
+  if(event.detail.resource === 'products') { allProducts = ADMIN.store('admin_products', []); render(); }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile — Shine Globe</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<div id="site-header"></div>
+<div class="breadcrumb-shine"><div class="container-xl small"><a href="../index.html" class="text-muted">Home</a> / <span class="text-dark fw-semibold">Profile</span></div></div>
+
+<section class="section-pad">
+  <div class="container-xl">
+    <div class="row g-4">
+      <div class="col-lg-3">
+        <div class="filter-box text-center">
+          <div class="cat-icon mx-auto mb-2" style="width:80px;height:80px;font-size:2rem;"><i class="fa-solid fa-user"></i></div>
+          <h6 class="fw-bold mb-0" id="profileName">Jane Doe</h6>
+          <p class="text-muted small" id="profileEmail">jane@example.com</p>
+        </div>
+        <div class="filter-box mt-3 p-0 overflow-hidden">
+          <button class="dash-tab list-group-item-action border-0 w-100 text-start p-3 fw-semibold active" data-tab="overview"><i class="fa-solid fa-gauge me-2"></i>Dashboard</button>
+          <button class="dash-tab list-group-item-action border-0 w-100 text-start p-3" data-tab="orders"><i class="fa-solid fa-box me-2"></i>Orders</button>
+          <button class="dash-tab list-group-item-action border-0 w-100 text-start p-3" data-tab="wishlist"><i class="fa-solid fa-heart me-2"></i>Wishlist</button>
+          <button class="dash-tab list-group-item-action border-0 w-100 text-start p-3" data-tab="addresses"><i class="fa-solid fa-location-dot me-2"></i>Saved Addresses</button>
+          <button class="dash-tab list-group-item-action border-0 w-100 text-start p-3" data-tab="info"><i class="fa-solid fa-id-card me-2"></i>Personal Info</button>
+          <button class="list-group-item-action border-0 w-100 text-start p-3 text-danger" onclick="SG.logout('login.html')"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</button>
+        </div>
+      </div>
+      <div class="col-lg-9">
+        <div class="tab-panel" id="panel-overview">
+          <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3"><div class="filter-box text-center"><i class="fa-solid fa-box-open fa-2x text-primary mb-2"></i><h4 class="fw-bold mb-0">12</h4><small class="text-muted">Total Orders</small></div></div>
+            <div class="col-6 col-md-3"><div class="filter-box text-center"><i class="fa-solid fa-heart fa-2x text-danger mb-2"></i><h4 class="fw-bold mb-0" id="ovWishCount">0</h4><small class="text-muted">Wishlist Items</small></div></div>
+            <div class="col-6 col-md-3"><div class="filter-box text-center"><i class="fa-solid fa-truck fa-2x text-warning mb-2"></i><h4 class="fw-bold mb-0">2</h4><small class="text-muted">In Transit</small></div></div>
+            <div class="col-6 col-md-3"><div class="filter-box text-center"><i class="fa-solid fa-indian-rupee-sign fa-2x text-success mb-2"></i><h4 class="fw-bold mb-0">₹842</h4><small class="text-muted">Total Spent</small></div></div>
+          </div>
+          <div class="filter-box"><h6 class="fw-bold mb-3">Recent Activity</h6>
+            <p class="small text-muted mb-2"><i class="fa-solid fa-circle-check text-success me-2"></i>Order #SG10234 delivered — 2 days ago</p>
+            <p class="small text-muted mb-2"><i class="fa-solid fa-truck text-warning me-2"></i>Order #SG10256 shipped — 5 days ago</p>
+            <p class="small text-muted mb-0"><i class="fa-solid fa-star text-accent me-2"></i>You left a review on Hand Sanitizer Gel</p>
+          </div>
+        </div>
+
+        <div class="tab-panel d-none" id="panel-orders">
+          <div class="table-responsive filter-box"><table class="table align-middle mb-0">
+            <thead><tr><th>Order ID</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>#SG10234</td><td>Jun 24, 2026</td><td>3</td><td>₹64.20</td><td><span class="badge bg-success">Delivered</span></td></tr>
+              <tr><td>#SG10256</td><td>Jun 27, 2026</td><td>2</td><td>₹29.98</td><td><span class="badge bg-warning text-dark">Shipped</span></td></tr>
+              <tr><td>#SG10301</td><td>Jun 29, 2026</td><td>5</td><td>₹112.40</td><td><span class="badge bg-primary">Processing</span></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+
+        <div class="tab-panel d-none" id="panel-wishlist"><div class="row g-4" id="profileWishGrid"></div></div>
+
+        <div class="tab-panel d-none" id="panel-addresses">
+          <div class="filter-box mb-3"><strong>Home</strong><p class="text-muted small mb-0">123 Main Street, Springfield, IL 62701, USA</p></div>
+          <div class="filter-box"><strong>Office</strong><p class="text-muted small mb-0">500 Market Ave, Suite 200, Chicago, IL 60601, USA</p></div>
+        </div>
+
+        <div class="tab-panel d-none" id="panel-info">
+          <form class="filter-box row g-3">
+            <div class="col-md-6"><label class="form-label">Full Name</label><input class="form-control" value="Jane Doe"></div>
+            <div class="col-md-6"><label class="form-label">Email</label><input class="form-control" value="jane@example.com"></div>
+            <div class="col-md-6"><label class="form-label">Phone</label><input class="form-control" value="+1 (555) 123-4567"></div>
+            <div class="col-12"><button type="button" class="btn btn-brand" onclick="SG.toast('Profile updated')">Save Changes</button></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/partials.js"></script>
+<script>
+if(!SG.isLoggedIn()){
+  window.location.href = 'login.html';
+}
+
+const user = SG.getCurrentUser() || { name:'Jane Doe', email:'jane@example.com' };
+document.getElementById('profileName').textContent = user.name;
+document.getElementById('profileEmail').textContent = user.email;
+
+document.querySelectorAll('.dash-tab').forEach(btn => btn.addEventListener('click', function(){
+  document.querySelectorAll('.dash-tab').forEach(b=>b.classList.remove('active'));
+  this.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.add('d-none'));
+  document.getElementById('panel-'+this.dataset.tab).classList.remove('d-none');
+}));
+
+document.addEventListener('sg:productsReady', (e) => {
+  const products = e.detail;
+  const wl = SG.getWishlist();
+  document.getElementById('ovWishCount').textContent = wl.length;
+  const items = wl.map(id => products.find(p=>p.id===id)).filter(Boolean);
+  document.getElementById('profileWishGrid').innerHTML = items.map(p => `<div class="col-6 col-md-4">${SG.productCard(p,'')}</div>`).join('') || '<p class="text-muted">No items saved yet.</p>';
+});
+</script>
+</body>
+</html>

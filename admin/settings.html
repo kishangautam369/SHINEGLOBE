@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings — Shine Globe Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="assets/admin.css">
+<style>
+.settings-nav{border-right:1px solid var(--a-border);}
+.settings-nav button{display:flex;align-items:center;gap:.7rem;width:100%;background:none;border:none;text-align:left;padding:.7rem 1rem;font-size:.87rem;font-weight:500;color:var(--a-muted);border-radius:10px;transition:.18s;cursor:pointer;margin-bottom:2px;}
+.settings-nav button:hover{background:var(--a-bg);color:var(--a-text);}
+.settings-nav button.active{background:#EFF6FF;color:var(--a-primary);font-weight:700;}
+.settings-nav button i{width:18px;text-align:center;}
+.nav-group-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--a-muted);padding:.8rem 1rem .3rem;font-weight:600;}
+.s-panel{display:none;}.s-panel.active{display:block;}
+.section-card{background:var(--a-surface);border:1px solid var(--a-border);border-radius:var(--a-radius);padding:1.5rem;margin-bottom:1.2rem;}
+.section-card h6{font-weight:700;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--a-border);display:flex;align-items:center;gap:.5rem;}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:.75rem 0;border-bottom:1px solid var(--a-border);}
+.toggle-row:last-of-type{border-bottom:none;}
+.toggle-label{font-size:.88rem;font-weight:600;}
+.toggle-sub{font-size:.77rem;color:var(--a-muted);}
+.color-swatch{width:32px;height:32px;border-radius:8px;cursor:pointer;border:3px solid transparent;transition:.15s;display:inline-block;}
+.color-swatch.sel{border-color:#0F172A;transform:scale(1.18);}
+.pay-card{border:2px solid var(--a-border);border-radius:12px;padding:1rem 1.2rem;transition:.2s;display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.75rem;}
+.pay-card.enabled{border-color:var(--a-primary);background:#EFF6FF;}
+.logo-zone{border:2px dashed var(--a-border);border-radius:12px;padding:1.8rem;text-align:center;cursor:pointer;transition:.2s;}
+.logo-zone:hover{border-color:var(--a-primary);background:#EFF6FF;}
+@media(max-width:991px){.settings-nav{display:flex;overflow-x:auto;gap:.35rem;padding:.5rem!important;white-space:nowrap;}.settings-nav .nav-group-label{display:none;}.settings-nav button{width:auto;flex:0 0 auto;margin:0;padding:.55rem .75rem;}.section-card{padding:1.1rem;}}
+@media(max-width:575px){.toggle-row{align-items:flex-start;gap:.75rem;}.pay-card{align-items:flex-start;padding:.85rem;}.logo-zone{padding:1.2rem .75rem;}}
+</style>
+</head>
+<body>
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="adminSidebar"></aside>
+  <div class="admin-main">
+    <div class="admin-topbar" id="adminTopbar"></div>
+    <div class="admin-content">
+
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div><h5 class="fw-bold mb-0">Settings</h5><p class="text-muted small mb-0">Manage your store configuration</p></div>
+        <button class="a-btn a-btn-primary" onclick="saveAll()"><i class="fa-solid fa-floppy-disk me-1"></i>Save All Changes</button>
+      </div>
+
+      <div class="row g-4">
+
+        <!-- Sidebar Nav -->
+        <div class="col-lg-3">
+          <div class="a-card p-2 settings-nav">
+            <div class="nav-group-label">General</div>
+            <button class="active" onclick="go('store')"        id="nav-store">       <i class="fa-solid fa-store"></i>           Store Information</button>
+            <button onclick="go('appearance')"                   id="nav-appearance">  <i class="fa-solid fa-palette"></i>         Appearance</button>
+            <button onclick="go('regional')"                     id="nav-regional">    <i class="fa-solid fa-globe"></i>           Regional</button>
+            <div class="nav-group-label">Commerce</div>
+            <button onclick="go('payment')"                      id="nav-payment">     <i class="fa-solid fa-credit-card"></i>     Payment</button>
+            <button onclick="go('shipping')"                     id="nav-shipping">    <i class="fa-solid fa-truck"></i>           Shipping</button>
+            <button onclick="go('tax')"                          id="nav-tax">         <i class="fa-solid fa-percent"></i>         Tax</button>
+            <button onclick="go('inventory')"                    id="nav-inventory">   <i class="fa-solid fa-warehouse"></i>       Inventory</button>
+            <div class="nav-group-label">System</div>
+            <button onclick="go('email')"                        id="nav-email">       <i class="fa-solid fa-envelope"></i>        Email / SMTP</button>
+            <button onclick="go('notif')"                        id="nav-notif">       <i class="fa-solid fa-bell"></i>            Notifications</button>
+            <button onclick="go('seo')"                          id="nav-seo">         <i class="fa-solid fa-magnifying-glass"></i>SEO</button>
+            <button onclick="go('security')"                     id="nav-security">    <i class="fa-solid fa-shield-halved"></i>   Security</button>
+            <button onclick="go('maintenance')"                  id="nav-maintenance"> <i class="fa-solid fa-screwdriver-wrench"></i>Maintenance</button>
+          </div>
+        </div>
+
+        <!-- Panels -->
+        <div class="col-lg-9">
+
+          <!-- STORE INFO -->
+          <div class="s-panel active" id="panel-store">
+            <div class="section-card">
+              <h6><i class="fa-solid fa-store text-primary"></i>Store Details</h6>
+              <div class="row g-3">
+                <div class="col-md-6"><label class="form-label small fw-semibold">Store Name</label><input class="form-control" id="s_storeName" value="Shine Globe"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Tagline</label><input class="form-control" id="s_tagline" value="Everything You Need, Delivered with Quality."></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Store Email</label><input type="email" class="form-control" id="s_email" value="support@shineglobe.com"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Support Phone</label><input class="form-control" id="s_phone" value="+1 (555) 123-4567"></div>
+                <div class="col-12"><label class="form-label small fw-semibold">Address</label><input class="form-control" id="s_address" value="123 Commerce Street, New York, NY 10001, USA"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Business Reg. No.</label><input class="form-control" value="US-SG-2024-001234"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">VAT / GST Number</label><input class="form-control" value="VAT-SG-789456"></div>
+              </div>
+            </div>
+            <div class="section-card">
+              <h6><i class="fa-solid fa-image text-primary"></i>Logo & Favicon</h6>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Store Logo</label>
+                  <div class="logo-zone" onclick="document.getElementById('logoFile').click()">
+                    <i class="fa-solid fa-cloud-arrow-up fa-2x text-muted mb-1 d-block"></i>
+                    <div class="small text-muted">Click to upload (PNG / SVG, max 2MB)</div>
+                    <input type="file" id="logoFile" class="d-none" accept="image/*">
+                  </div>
+                  <input class="form-control mt-2" placeholder="Or paste logo URL">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Favicon</label>
+                  <div class="logo-zone" onclick="document.getElementById('favFile').click()">
+                    <i class="fa-solid fa-cloud-arrow-up fa-2x text-muted mb-1 d-block"></i>
+                    <div class="small text-muted">ICO or 32×32 PNG</div>
+                    <input type="file" id="favFile" class="d-none" accept="image/*">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="section-card">
+              <h6><i class="fa-solid fa-clock text-primary"></i>Business Hours</h6>
+              <div class="row g-3">
+                <div class="col-md-6"><label class="form-label small fw-semibold">Opening Time</label><input type="time" class="form-control" value="09:00"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Closing Time</label><input type="time" class="form-control" value="19:00"></div>
+                <div class="col-12">
+                  <label class="form-label small fw-semibold">Working Days</label>
+                  <div class="d-flex flex-wrap gap-3 mt-1">
+                    <label class="form-check form-check-inline"><input class="form-check-input" type="checkbox" checked><span class="form-check-label small">Mon</span></label>
+                    <label class="form-check form-check-inline"><input class="form-check-input" type="checkbox" checked><span class="form-check-label small">Tue</span></label>
+                    <label class="form-check form-check-inline"><input class="form-check-input" type="checkbox" checked><span class="form-check-label small">Wed</span></label>
+                    <label class="form-check form-check-inline"><input class="form-check-input" type="checkbox" checked><span class="form-check-label small">Thu</span></label>
+                    <label class="form-check form-check-inline"><input class="form-check-input" type="checkbox" checked><span class="form-check-label small">Fri</span></label>
+                    <label class="form-check form-check-inline"><input class="form-check-input" type="checkbox" checked><span class="form-check-label small">Sat</span></label>
+                    <label class="form-check form-check-inline"><input class="form-check-input" type="checkbox"><span class="form-check-label small">Sun</span></label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- APPEARANCE -->
+          <div class="s-panel" id="panel-appearance">
+            <div class="section-card">
+              <h6><i class="fa-solid fa-palette text-primary"></i>Theme Colors</h6>
+              <div class="row g-4">
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold">Primary Color</label>
+                  <div class="d-flex gap-2 mb-2">
+                    <span class="color-swatch sel" style="background:#2563EB" data-grp="primary" onclick="pickColor(this,'#2563EB','s_primary')"></span>
+                    <span class="color-swatch" style="background:#7C3AED" data-grp="primary" onclick="pickColor(this,'#7C3AED','s_primary')"></span>
+                    <span class="color-swatch" style="background:#DC2626" data-grp="primary" onclick="pickColor(this,'#DC2626','s_primary')"></span>
+                    <span class="color-swatch" style="background:#16A34A" data-grp="primary" onclick="pickColor(this,'#16A34A','s_primary')"></span>
+                    <span class="color-swatch" style="background:#0EA5E9" data-grp="primary" onclick="pickColor(this,'#0EA5E9','s_primary')"></span>
+                  </div>
+                  <input type="color" class="form-control form-control-color" id="s_primary" value="#2563EB">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold">Accent Color</label>
+                  <div class="d-flex gap-2 mb-2">
+                    <span class="color-swatch sel" style="background:#F59E0B" data-grp="accent" onclick="pickColor(this,'#F59E0B','s_accent')"></span>
+                    <span class="color-swatch" style="background:#EC4899" data-grp="accent" onclick="pickColor(this,'#EC4899','s_accent')"></span>
+                    <span class="color-swatch" style="background:#14B8A6" data-grp="accent" onclick="pickColor(this,'#14B8A6','s_accent')"></span>
+                    <span class="color-swatch" style="background:#F97316" data-grp="accent" onclick="pickColor(this,'#F97316','s_accent')"></span>
+                  </div>
+                  <input type="color" class="form-control form-control-color" id="s_accent" value="#F59E0B">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold">Background</label>
+                  <input type="color" class="form-control form-control-color" id="s_bg" value="#F8FAFC">
+                </div>
+              </div>
+            </div>
+            <div class="section-card">
+              <h6><i class="fa-solid fa-font text-primary"></i>Typography</h6>
+              <div class="row g-3">
+                <div class="col-md-6"><label class="form-label small fw-semibold">Heading Font</label>
+                  <select class="form-select"><option selected>Poppins</option><option>Montserrat</option><option>Roboto</option><option>Lato</option></select></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Body Font</label>
+                  <select class="form-select"><option selected>Inter</option><option>Poppins</option><option>Roboto</option><option>Open Sans</option></select></div>
+              </div>
+            </div>
+            <div class="section-card">
+              <h6><i class="fa-solid fa-moon text-primary"></i>Display</h6>
+              <div class="toggle-row"><div><div class="toggle-label">Dark Mode (Admin Panel)</div><div class="toggle-sub">Apply dark theme to the admin</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" id="s_darkMode"></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Compact Sidebar</div><div class="toggle-sub">Icons only by default</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox"></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Show Product Ratings</div><div class="toggle-sub">Display star ratings on listings</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+            </div>
+          </div>
+
+          <!-- REGIONAL -->
+          <div class="s-panel" id="panel-regional">
+            <div class="section-card">
+              <h6><i class="fa-solid fa-globe text-primary"></i>Regional Settings</h6>
+              <div class="row g-3">
+                <div class="col-md-6"><label class="form-label small fw-semibold">Default Currency</label>
+                  <select class="form-select"><option selected>INR — Indian Rupee (₹)</option><option>EUR — Euro (€)</option><option>GBP — British Pound (£)</option><option>AED — UAE Dirham (د.إ)</option></select></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Currency Position</label>
+                  <select class="form-select"><option selected>Before amount (₹10.00)</option><option>After amount (10.00₹)</option></select></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Default Language</label>
+                  <select class="form-select"><option selected>English (US)</option><option>English (UK)</option><option>French</option><option>Spanish</option><option>Arabic</option><option>Hindi</option></select></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Timezone</label>
+                  <select class="form-select"><option selected>America/New_York (UTC-5)</option><option>America/Los_Angeles (UTC-8)</option><option>Europe/London (UTC+0)</option><option>Asia/Kolkata (UTC+5:30)</option><option>Asia/Dubai (UTC+4)</option></select></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Date Format</label>
+                  <select class="form-select"><option selected>MM/DD/YYYY</option><option>DD/MM/YYYY</option><option>YYYY-MM-DD</option></select></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Weight Unit</label>
+                  <select class="form-select"><option selected>kg</option><option>lb</option><option>g</option><option>oz</option></select></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PAYMENT -->
+          <div class="s-panel" id="panel-payment">
+            <div class="section-card">
+              <h6><i class="fa-solid fa-credit-card text-primary"></i>Payment Gateways</h6>
+              <div class="pay-card enabled" id="pay-stripe">
+                <div class="d-flex align-items-center gap-3"><i class="fa-brands fa-stripe fa-2x text-primary"></i><div><div class="fw-semibold">Stripe</div><div class="text-muted small">Credit &amp; Debit Cards</div></div></div>
+                <div class="d-flex align-items-center gap-2"><span class="status-pill status-success" id="stripe-status">Active</span><button class="a-btn a-btn-outline" style="font-size:.8rem;" onclick="togglePay('stripe')">Disable</button><button class="a-btn a-btn-outline" style="font-size:.8rem;" onclick="showGateway('stripe')">Configure</button></div>
+              </div>
+              <div class="pay-card" id="pay-paypal">
+                <div class="d-flex align-items-center gap-3"><i class="fa-brands fa-paypal fa-2x" style="color:#003087;"></i><div><div class="fw-semibold">PayPal</div><div class="text-muted small">PayPal Checkout</div></div></div>
+                <div class="d-flex align-items-center gap-2"><span class="status-pill status-neutral" id="paypal-status">Inactive</span><button class="a-btn a-btn-outline" style="font-size:.8rem;" onclick="togglePay('paypal')">Enable</button><button class="a-btn a-btn-outline" style="font-size:.8rem;" onclick="showGateway('paypal')">Configure</button></div>
+              </div>
+              <div class="pay-card" id="pay-razorpay">
+                <div class="d-flex align-items-center gap-3"><i class="fa-solid fa-bolt fa-2x text-warning"></i><div><div class="fw-semibold">Razorpay</div><div class="text-muted small">UPI, Cards, Netbanking</div></div></div>
+                <div class="d-flex align-items-center gap-2"><span class="status-pill status-neutral" id="razorpay-status">Inactive</span><button class="a-btn a-btn-outline" style="font-size:.8rem;" onclick="togglePay('razorpay')">Enable</button><button class="a-btn a-btn-outline" style="font-size:.8rem;" onclick="showGateway('razorpay')">Configure</button></div>
+              </div>
+              <div class="pay-card enabled" id="pay-cod">
+                <div class="d-flex align-items-center gap-3"><i class="fa-solid fa-money-bill-wave fa-2x text-success"></i><div><div class="fw-semibold">Cash on Delivery</div><div class="text-muted small">Collect payment at doorstep</div></div></div>
+                <div class="d-flex align-items-center gap-2"><span class="status-pill status-success" id="cod-status">Active</span><button class="a-btn a-btn-outline" style="font-size:.8rem;" onclick="togglePay('cod')">Disable</button></div>
+              </div>
+            </div>
+            <div class="section-card">
+              <h6><i class="fa-solid fa-gear text-primary"></i>Payment Options</h6>
+              <div class="toggle-row"><div><div class="toggle-label">Test / Sandbox Mode</div><div class="toggle-sub">No real charges — test transactions only</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Auto-capture Payments</div><div class="toggle-sub">Automatically capture after authorisation</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Send Payment Receipt Email</div><div class="toggle-sub">Email customer after successful payment</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="row g-3 mt-2">
+                <div class="col-md-6"><label class="form-label small fw-semibold">Minimum Order (₹)</label><input type="number" class="form-control" value="5"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Max COD Order (₹)</label><input type="number" class="form-control" value="200"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SHIPPING -->
+          <div class="s-panel" id="panel-shipping">
+            <div class="section-card">
+              <h6><i class="fa-solid fa-truck text-primary"></i>Shipping Zones</h6>
+              <div class="table-responsive mb-3">
+                <table class="a-table">
+                  <thead><tr><th>Zone</th><th>Region</th><th>Standard</th><th>Express</th><th>Free Above</th><th></th></tr></thead>
+                  <tbody>
+                    <tr><td class="fw-semibold">Domestic</td><td>India</td><td>₹5.99</td><td>₹14.99</td><td>₹50</td><td><button class="a-icon-btn" onclick="toast('Edit zone — coming soon.','info')"><i class="fa-solid fa-pen"></i></button></td></tr>
+                    <tr><td class="fw-semibold">Canada</td><td>Canada</td><td>₹9.99</td><td>₹24.99</td><td>₹100</td><td><button class="a-icon-btn" onclick="toast('Edit zone — coming soon.','info')"><i class="fa-solid fa-pen"></i></button></td></tr>
+                    <tr><td class="fw-semibold">Europe</td><td>EU Countries</td><td>₹14.99</td><td>₹34.99</td><td>₹150</td><td><button class="a-icon-btn" onclick="toast('Edit zone — coming soon.','info')"><i class="fa-solid fa-pen"></i></button></td></tr>
+                    <tr><td class="fw-semibold">Rest of World</td><td>All Others</td><td>₹19.99</td><td>₹49.99</td><td>₹200</td><td><button class="a-icon-btn" onclick="toast('Edit zone — coming soon.','info')"><i class="fa-solid fa-pen"></i></button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <button class="a-btn a-btn-outline" onclick="toast('Add zone — coming soon.','info')"><i class="fa-solid fa-plus me-1"></i>Add Zone</button>
+            </div>
+            <div class="section-card">
+              <h6><i class="fa-solid fa-gear text-primary"></i>Shipping Options</h6>
+              <div class="row g-3">
+                <div class="col-md-6"><label class="form-label small fw-semibold">Default Method</label><select class="form-select"><option selected>Standard Shipping</option><option>Express Shipping</option><option>Free Shipping</option></select></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Free Shipping Threshold (₹)</label><input type="number" class="form-control" value="50"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Standard ETA</label><input class="form-control" value="3–5 business days"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Express ETA</label><input class="form-control" value="1–2 business days"></div>
+              </div>
+              <div class="toggle-row mt-3"><div><div class="toggle-label">Enable Free Shipping</div><div class="toggle-sub">Offer free shipping above the threshold</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Show Estimated Delivery Dates</div><div class="toggle-sub">Display on product and cart pages</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+            </div>
+          </div>
+
+          <!-- TAX -->
+          <div class="s-panel" id="panel-tax">
+            <div class="section-card">
+              <h6><i class="fa-solid fa-percent text-primary"></i>Tax Configuration</h6>
+              <div class="toggle-row"><div><div class="toggle-label">Enable Tax Calculation</div><div class="toggle-sub">Automatically calculate taxes on orders</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Prices Include Tax</div><div class="toggle-sub">Product prices already include tax</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox"></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Show Tax Breakdown on Checkout</div><div class="toggle-sub">Display itemised tax in order summary</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="row g-3 mt-2">
+                <div class="col-md-6"><label class="form-label small fw-semibold">Default Tax Rate (%)</label><input type="number" class="form-control" value="8" step="0.01"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Tax Label</label><input class="form-control" value="Sales Tax"></div>
+              </div>
+            </div>
+            <div class="section-card">
+              <h6><i class="fa-solid fa-table text-primary"></i>Tax Rules by Category</h6>
+              <div class="table-responsive">
+                <table class="a-table">
+                  <thead><tr><th>Category</th><th>Rate</th><th>Type</th><th></th></tr></thead>
+                  <tbody>
+                    <tr><td>Medical Supplies</td><td>0%</td><td>Tax Exempt</td><td><button class="a-icon-btn" onclick="toast('Edit coming soon.','info')"><i class="fa-solid fa-pen"></i></button></td></tr>
+                    <tr><td>Grocery</td><td>0%</td><td>Zero Rated</td><td><button class="a-icon-btn" onclick="toast('Edit coming soon.','info')"><i class="fa-solid fa-pen"></i></button></td></tr>
+                    <tr><td>All Others</td><td>8%</td><td>Standard</td><td><button class="a-icon-btn" onclick="toast('Edit coming soon.','info')"><i class="fa-solid fa-pen"></i></button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <button class="a-btn a-btn-outline mt-3" onclick="toast('Add rule — coming soon.','info')"><i class="fa-solid fa-plus me-1"></i>Add Tax Rule</button>
+            </div>
+          </div>
+
+          <!-- INVENTORY -->
+          <div class="s-panel" id="panel-inventory">
+            <div class="section-card">
+              <h6><i class="fa-solid fa-warehouse text-primary"></i>Inventory Settings</h6>
+              <div class="toggle-row"><div><div class="toggle-label">Track Inventory</div><div class="toggle-sub">Enable stock tracking for all products</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Allow Backorders</div><div class="toggle-sub">Let customers order out-of-stock items</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox"></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Hide Out-of-Stock Products</div><div class="toggle-sub">Remove from store when stock hits 0</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox"></div></div>
+              <div class="row g-3 mt-2">
+                <div class="col-md-6"><label class="form-label small fw-semibold">Low Stock Threshold</label><input type="number" class="form-control" value="10"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Alert Email</label><input type="email" class="form-control" value="inventory@shineglobe.com"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- EMAIL / SMTP -->
+          <div class="s-panel" id="panel-email">
+            <div class="section-card">
+              <h6><i class="fa-solid fa-envelope text-primary"></i>SMTP Configuration</h6>
+              <div class="row g-3">
+                <div class="col-md-6"><label class="form-label small fw-semibold">SMTP Host</label><input class="form-control" value="smtp.gmail.com"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">SMTP Port</label><input class="form-control" value="587"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Username</label><input class="form-control" value="no-reply@shineglobe.com"></div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Password</label>
+                  <div class="input-group">
+                    <input type="password" class="form-control" id="smtpPwd" value="secret1234">
+                    <button class="btn border" onclick="togglePwd('smtpPwd',this)"><i class="fa-solid fa-eye"></i></button>
+                  </div>
+                </div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Encryption</label><select class="form-select"><option selected>TLS</option><option>SSL</option><option>None</option></select></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">From Name</label><input class="form-control" value="Shine Globe"></div>
+                <div class="col-12"><button class="a-btn a-btn-outline" onclick="toast('Test email sent!','info')"><i class="fa-solid fa-paper-plane me-1"></i>Send Test Email</button></div>
+              </div>
+            </div>
+            <div class="section-card">
+              <h6><i class="fa-solid fa-envelope-open text-primary"></i>Email Templates</h6>
+              <div class="toggle-row"><div><div class="toggle-label">Order Confirmation</div><div class="toggle-sub">Sent after a customer places an order</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Shipping Notification</div><div class="toggle-sub">Sent when the order is shipped</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Delivery Confirmation</div><div class="toggle-sub">Sent when the order is delivered</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Password Reset</div><div class="toggle-sub">Sent when a customer resets their password</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Abandoned Cart Reminder</div><div class="toggle-sub">Sent 24 hrs after cart abandonment</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox"></div></div>
+            </div>
+          </div>
+
+          <!-- NOTIFICATIONS -->
+          <div class="s-panel" id="panel-notif">
+            <div class="section-card">
+              <h6><i class="fa-solid fa-bell text-primary"></i>Admin Notification Triggers</h6>
+              <div class="toggle-row"><div><div class="toggle-label">New Order</div><div class="toggle-sub">Alert when a new order is placed</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Low Stock</div><div class="toggle-sub">Alert when stock falls below threshold</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">New Customer Registered</div><div class="toggle-sub">Alert on new customer sign-up</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox"></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">New Review Posted</div><div class="toggle-sub">Alert on product review submission</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Refund Requested</div><div class="toggle-sub">Alert when a refund is requested</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Failed Payment</div><div class="toggle-sub">Alert when a payment attempt fails</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="mt-3"><label class="form-label small fw-semibold">Notification Recipients (comma-separated)</label><input class="form-control" value="admin@shineglobe.com, manager@shineglobe.com"></div>
+            </div>
+          </div>
+
+          <!-- SEO -->
+          <div class="s-panel" id="panel-seo">
+            <div class="section-card">
+              <h6><i class="fa-solid fa-magnifying-glass text-primary"></i>Default SEO</h6>
+              <div class="row g-3">
+                <div class="col-12"><label class="form-label small fw-semibold">Default Meta Title</label><input class="form-control" value="Shine Globe — Everything You Need, Delivered with Quality"></div>
+                <div class="col-12"><label class="form-label small fw-semibold">Default Meta Description</label><textarea class="form-control" rows="2">Shop premium disposable products, cleaning supplies, hygiene essentials and office supplies at Shine Globe.</textarea></div>
+                <div class="col-12"><label class="form-label small fw-semibold">Default Keywords</label><input class="form-control" value="disposable products, cleaning supplies, hygiene, household, office supplies"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Google Analytics ID</label><input class="form-control" placeholder="G-XXXXXXXXXX"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Google Tag Manager ID</label><input class="form-control" placeholder="GTM-XXXXXXX"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Facebook Pixel ID</label><input class="form-control" placeholder="XXXXXXXXXXXXXXXX"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Sitemap URL</label><input class="form-control" value="https://shineglobe.com/sitemap.xml" readonly></div>
+              </div>
+              <div class="toggle-row mt-3"><div><div class="toggle-label">Auto-generate Sitemap</div><div class="toggle-sub">Rebuild when products or pages change</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Enable Canonical URLs</div><div class="toggle-sub">Prevent duplicate content issues</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Noindex Out-of-Stock Products</div><div class="toggle-sub">Hide unavailable products from search engines</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox"></div></div>
+            </div>
+          </div>
+
+          <!-- SECURITY -->
+          <div class="s-panel" id="panel-security">
+            <div class="section-card">
+              <h6><i class="fa-solid fa-shield-halved text-primary"></i>Security Settings</h6>
+              <div class="toggle-row"><div><div class="toggle-label">Force HTTPS</div><div class="toggle-sub">Redirect all HTTP traffic to HTTPS</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Require 2FA for Admin</div><div class="toggle-sub">All admin logins must use 2-factor auth</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Login Attempt Limit</div><div class="toggle-sub">Lock account after too many failed attempts</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Session Timeout</div><div class="toggle-sub">Auto-logout after inactivity</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="row g-3 mt-2">
+                <div class="col-md-6"><label class="form-label small fw-semibold">Session Timeout (mins)</label><input type="number" class="form-control" value="60"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Max Login Attempts</label><input type="number" class="form-control" value="5"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Password Min Length</label><input type="number" class="form-control" value="8"></div>
+                <div class="col-md-6"><label class="form-label small fw-semibold">Allowed Admin IPs</label><input class="form-control" placeholder="Leave blank to allow all"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MAINTENANCE -->
+          <div class="s-panel" id="panel-maintenance">
+            <div class="section-card">
+              <h6><i class="fa-solid fa-screwdriver-wrench text-primary"></i>Maintenance Mode</h6>
+              <div class="toggle-row">
+                <div><div class="toggle-label">Enable Maintenance Mode</div><div class="toggle-sub">Show a maintenance page to all visitors. Admins still have access.</div></div>
+                <div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" id="s_maintenance"></div>
+              </div>
+              <div class="mt-3"><label class="form-label small fw-semibold">Maintenance Message</label>
+                <textarea class="form-control" rows="2">We are currently performing scheduled maintenance. We will be back shortly. Thank you for your patience!</textarea>
+              </div>
+            </div>
+            <div class="section-card">
+              <h6><i class="fa-solid fa-database text-primary"></i>Cache & Performance</h6>
+              <div class="toggle-row"><div><div class="toggle-label">Enable Page Caching</div><div class="toggle-sub">Speed up page loads with server-side cache</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Minify CSS &amp; JS</div><div class="toggle-sub">Reduce file sizes for faster loading</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="toggle-row"><div><div class="toggle-label">Lazy Load Images</div><div class="toggle-sub">Load images only when visible in the viewport</div></div><div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked></div></div>
+              <div class="d-flex gap-2 mt-3">
+                <button class="a-btn a-btn-outline" onclick="toast('Cache cleared!','info')"><i class="fa-solid fa-broom me-1"></i>Clear Cache</button>
+                <button class="a-btn a-btn-outline" onclick="toast('Assets rebuilt!','info')"><i class="fa-solid fa-rotate me-1"></i>Rebuild Assets</button>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /col-lg-9 -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Gateway Config Modal -->
+<div class="modal fade" id="gatewayModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:460px;">
+    <div class="modal-content p-4">
+      <div class="modal-header border-0 p-0 mb-3">
+        <h5 class="modal-title fw-bold" id="gwTitle">Configure Gateway</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div id="gwBody"></div>
+      <div class="d-flex gap-2 justify-content-end mt-4">
+        <button class="a-btn a-btn-outline" data-bs-dismiss="modal">Cancel</button>
+        <button class="a-btn a-btn-primary" onclick="toast('Gateway saved!');bootstrap.Modal.getInstance(document.getElementById('gatewayModal')).hide()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toastWrap" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:1300;"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="assets/admin.js"></script>
+<script>
+ADMIN.initLayout('settings.html','Settings');
+
+/* toast */
+function toast(msg,type='success'){
+  const c={success:'#16A34A',error:'#DC2626',info:'#2563EB'};
+  const i={success:'fa-circle-check',error:'fa-circle-exclamation',info:'fa-circle-info'};
+  const el=document.createElement('div');
+  el.className='toast align-items-center text-white border-0 show mb-2';
+  el.style.cssText='background:'+c[type]+';border-radius:10px;min-width:260px;';
+  el.innerHTML='<div class="d-flex"><div class="toast-body"><i class="fa-solid '+i[type]+' me-2"></i>'+msg+'</div><button class="btn-close btn-close-white me-2 m-auto" onclick="this.closest(\'.toast\').remove()"></button></div>';
+  document.getElementById('toastWrap').appendChild(el);
+  setTimeout(()=>el.remove(),3500);
+}
+
+/* panel switch */
+function go(p){
+  document.querySelectorAll('.s-panel').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.settings-nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+p).classList.add('active');
+  document.getElementById('nav-'+p).classList.add('active');
+}
+
+/* color swatches */
+function pickColor(el,val,inputId){
+  document.getElementById(inputId).value=val;
+  document.querySelectorAll('.color-swatch[data-grp="'+el.dataset.grp+'"]').forEach(s=>s.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+/* show/hide password */
+function togglePwd(id,btn){
+  const inp=document.getElementById(id);
+  const show=inp.type==='password';
+  inp.type=show?'text':'password';
+  btn.innerHTML=show?'<i class="fa-solid fa-eye-slash"></i>':'<i class="fa-solid fa-eye"></i>';
+}
+
+/* payment gateway toggle */
+const gwState={stripe:true,paypal:false,razorpay:false,cod:true};
+function togglePay(gw){
+  gwState[gw]=!gwState[gw];
+  const pill=document.getElementById(gw+'-status');
+  const card=document.getElementById('pay-'+gw);
+  const btn=card.querySelector('[onclick*="togglePay"]');
+  pill.className='status-pill '+(gwState[gw]?'status-success':'status-neutral');
+  pill.textContent=gwState[gw]?'Active':'Inactive';
+  card.classList.toggle('enabled',gwState[gw]);
+  if(btn) btn.textContent=gwState[gw]?'Disable':'Enable';
+}
+
+/* gateway config modal */
+const GW_FIELDS={
+  stripe:[{l:'Publishable Key',p:'pk_test_...'},{l:'Secret Key',p:'sk_test_...',t:'password'},{l:'Webhook Secret',p:'whsec_...'}],
+  paypal:[{l:'Client ID',p:'PayPal Client ID'},{l:'Client Secret',p:'PayPal Secret',t:'password'},{l:'Mode',p:'',t:'select',opts:['Sandbox','Live']}],
+  razorpay:[{l:'Key ID',p:'rzp_test_...'},{l:'Key Secret',p:'Razorpay Secret',t:'password'}],
+};
+function showGateway(gw){
+  document.getElementById('gwTitle').textContent='Configure '+gw.charAt(0).toUpperCase()+gw.slice(1);
+  document.getElementById('gwBody').innerHTML=(GW_FIELDS[gw]||[]).map(f=>`
+    <div class="mb-3"><label class="form-label small fw-semibold">${f.l}</label>
+    ${f.t==='select'
+      ?'<select class="form-select">'+f.opts.map(o=>'<option>'+o+'</option>').join('')+'</select>'
+      :'<input type="'+(f.t||'text')+'" class="form-control" placeholder="'+(f.p||'')+'">'
+    }</div>`).join('');
+  const m=document.getElementById('gatewayModal');
+  const ex=bootstrap.Modal.getInstance(m);
+  if(ex) ex.dispose();
+  new bootstrap.Modal(m).show();
+}
+
+/* load + save */
+document.addEventListener('admin:dataReady', async ()=>{
+  try { await ADMIN.loadCollection('settings'); }
+  catch(error) { console.error('[sync] Could not load shared settings.', error); }
+  const s=ADMIN.store('admin_settings',{});
+  if(s.storeName) document.getElementById('s_storeName').value=s.storeName;
+  if(s.tagline)   document.getElementById('s_tagline').value=s.tagline;
+  if(s.email)     document.getElementById('s_email').value=s.email;
+  if(s.phone)     document.getElementById('s_phone').value=s.phone;
+  if(s.primary)   document.getElementById('s_primary').value=s.primary;
+  if(s.accent)    document.getElementById('s_accent').value=s.accent;
+  if(s.darkMode)  document.getElementById('s_darkMode').checked=s.darkMode;
+  if(s.maintenance) document.getElementById('s_maintenance').checked=s.maintenance;
+});
+
+async function saveAll(){
+  const settings = {
+    storeName   :document.getElementById('s_storeName').value,
+    tagline     :document.getElementById('s_tagline').value,
+    email       :document.getElementById('s_email').value,
+    phone       :document.getElementById('s_phone').value,
+    primary     :document.getElementById('s_primary').value,
+    accent      :document.getElementById('s_accent').value,
+    darkMode    :document.getElementById('s_darkMode').checked,
+    maintenance :document.getElementById('s_maintenance').checked,
+  };
+  try {
+    await ADMIN.saveCollection('settings', settings);
+    toast('All settings saved successfully!');
+  } catch(error) {
+    console.error(error);
+    toast('Settings were not saved to the shared server.','error');
+  }
+}
+</script>
+</body>
+</html>

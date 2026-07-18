@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Confirmed — Shine Globe</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+<style>
+.check-circle{width:110px;height:110px;border-radius:50%;background:#DCFCE7;display:flex;align-items:center;justify-content:center;margin:0 auto;animation:pop .5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes pop{0%{transform:scale(0);}100%{transform:scale(1);}}
+</style>
+</head>
+<body>
+<div id="site-header"></div>
+<section class="section-pad text-center">
+  <div class="container-xl" style="max-width:600px;">
+    <div class="check-circle mb-4"><i class="fa-solid fa-check fa-3x text-success"></i></div>
+    <h2 class="fw-bold">Order Placed Successfully!</h2>
+    <p class="text-muted">Thank you for shopping with Shine Globe. A confirmation email has been sent to your inbox.</p>
+    <div class="filter-box text-start my-4">
+      <div class="d-flex justify-content-between mb-2"><span class="text-muted">Order Number</span><strong id="orderNum"></strong></div>
+      <div class="d-flex justify-content-between mb-2"><span class="text-muted">Estimated Delivery</span><strong>3–5 business days</strong></div>
+      <div class="d-flex justify-content-between"><span class="text-muted">Payment Status</span><span class="badge bg-success">Confirmed</span></div>
+    </div>
+    <div class="d-flex gap-3 justify-content-center flex-wrap">
+      <a href="../index.html" class="btn btn-outline-brand">Back to Home</a>
+      <a href="profile.html" class="btn btn-brand">Track My Order</a>
+    </div>
+  </div>
+</section>
+<div id="site-footer"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/partials.js"></script>
+<script>document.getElementById('orderNum').textContent = '#SG' + Math.floor(10000+Math.random()*89999);</script>
+</body>
+</html>
