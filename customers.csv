@@ -1,0 +1,7 @@
+id,name,email,orders,spent,status,joined
+"1","Amara Reyes","amara@example.com","12","842.3","Active","2024-02-11"
+"2","Daniel Cho","daniel@example.com","5","231.1","Active","2024-08-03"
+"3","Priya Nair","priya@example.com","8","410.75","Active","2025-01-19"
+"4","Marcus Webb","marcus@example.com","2","58.4","Blocked","2025-04-22"
+"5","Lena Kowalski","lena@example.com","15","1023.6","Active","2023-11-05"
+"6","Omar Siddiqui","omar@example.com","3","97.2","Active","2025-09-14"

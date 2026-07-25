@@ -1,3 +1,10 @@
+require("dotenv").config();
+const { createClient } = require("@supabase/supabase-js");
+
+const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
+);
 /* Shine Globe shared catalog server.
    Run with: node server.js  (then open http://localhost:3000) */
 const http = require('http');
@@ -62,7 +69,21 @@ function readBody(req){
 function contentType(file){
   return ({ '.html':'text/html; charset=utf-8', '.js':'application/javascript; charset=utf-8', '.css':'text/css; charset=utf-8', '.json':'application/json; charset=utf-8', '.svg':'image/svg+xml', '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.png':'image/png' })[path.extname(file).toLowerCase()] || 'application/octet-stream';
 }
+(async () => {
+    console.log("Testing Supabase connection...");
 
+    const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .limit(1);
+
+    if (error) {
+        console.error("Supabase Error:", error);
+    } else {
+        console.log("Supabase Connected Successfully!");
+        console.log(data);
+    }
+})();
 http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const apiMatch = url.pathname.match(/^\/api\/(products|categories|orders|customers|settings)$/);
