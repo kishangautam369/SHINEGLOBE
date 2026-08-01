@@ -5,10 +5,12 @@ const fs = require("fs");
 const path = require("path");
 const { URL } = require("url");
 const { createClient } = require("@supabase/supabase-js");
+const { formidable } = require("formidable");
 
 const ROOT = __dirname;
 const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(ROOT, "assets", "data");
+const UPLOAD_DIR = path.join(ROOT, "assets", "images", "uploads");
 const EVENT_CLIENTS = new Set();
 
 let supabase = null;
@@ -75,6 +77,7 @@ function contentType(file) {
 
 function ensureDataDir() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
 function readJsonFile(filePath, fallback) {
@@ -354,6 +357,33 @@ http.createServer(async (req, res) => {
     res.write("retry:3000\n\n");
     EVENT_CLIENTS.add(res);
     req.on("close", () => EVENT_CLIENTS.delete(res));
+    return;
+  }
+
+  if (url.pathname === "/api/upload-image") {
+    if (req.method !== "POST") return sendJson(res, 405, { error: "Method not allowed." });
+
+    ensureDataDir();
+    const form = formidable({
+      uploadDir: UPLOAD_DIR,
+      keepExtensions: true,
+      maxFileSize: 5 * 1024 * 1024,
+      filename: (_, originalName) => {
+        const ext = path.extname(originalName || "image.jpg");
+        return `img-${Date.now()}-${Math.round(Math.random() * 1000)}${ext}`;
+      }
+    });
+
+    form.parse(req, (error, fields, files) => {
+      if (error) return sendJson(res, 500, { error: error.message });
+      const file = files.image || files.file || files.upload;
+      if (!file || !Array.isArray(file) && !file.filepath) {
+        return sendJson(res, 400, { error: "No image file provided." });
+      }
+      const uploaded = Array.isArray(file) ? file[0] : file;
+      const relativePath = `/assets/images/uploads/${path.basename(uploaded.filepath)}`;
+      return sendJson(res, 200, { url: relativePath, name: uploaded.originalFilename || path.basename(uploaded.filepath) });
+    });
     return;
   }
 

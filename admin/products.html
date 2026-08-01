@@ -61,7 +61,8 @@
             <div class="col-md-4"><label class="form-label small fw-semibold">Price (₹)</label><input required type="number" step="0.01" class="form-control" id="pf_price"></div>
             <div class="col-md-4"><label class="form-label small fw-semibold">Old Price (₹)</label><input type="number" step="0.01" class="form-control" id="pf_oldprice"></div>
             <div class="col-md-4"><label class="form-label small fw-semibold">Stock Qty</label><input required type="number" class="form-control" id="pf_stock"></div>
-            <div class="col-md-6"><label class="form-label small fw-semibold">Image URL</label><input class="form-control" id="pf_image"></div>
+            <div class="col-md-6"><label class="form-label small fw-semibold">Image URL</label><input class="form-control" id="pf_image" placeholder="Paste URL or upload a file"></div>
+            <div class="col-md-6"><label class="form-label small fw-semibold">Upload Image</label><input type="file" accept="image/*" capture="environment" class="form-control" id="pf_image_file"></div>
             <div class="col-md-6"><label class="form-label small fw-semibold">Badge</label>
               <select class="form-select" id="pf_badge"><option value="">None</option><option>New</option><option>Sale</option><option>Best Seller</option></select>
             </div>
@@ -170,8 +171,28 @@ function openProductModal(id){
   new bootstrap.Modal(modalEl).show();
 }
 
+async function uploadProductImage(){
+  const input = document.getElementById('pf_image_file');
+  const file = input?.files?.[0];
+  if(!file) return null;
+  const formData = new FormData();
+  formData.append('image', file);
+  const res = await fetch('../api/upload-image', { method:'POST', body: formData });
+  if(!res.ok) throw new Error('Image upload failed');
+  const result = await res.json();
+  return result.url;
+}
+
 async function saveProduct(){
   const id = document.getElementById('pf_id').value;
+  let imageUrl = document.getElementById('pf_image').value.trim();
+  try {
+    const uploaded = await uploadProductImage();
+    if(uploaded) imageUrl = uploaded;
+  } catch (error) {
+    console.error(error);
+    alert('Image upload failed. You can still save the product using a URL.');
+  }
   const data = {
     name: document.getElementById('pf_name').value,
     category: document.getElementById('pf_category').value,
@@ -179,7 +200,7 @@ async function saveProduct(){
     price: parseFloat(document.getElementById('pf_price').value) || 0,
     oldPrice: parseFloat(document.getElementById('pf_oldprice').value) || null,
     stock: parseInt(document.getElementById('pf_stock').value)||0,
-    image: document.getElementById('pf_image').value || 'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600',
+    image: imageUrl || 'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600',
     badge: document.getElementById('pf_badge').value,
     desc: document.getElementById('pf_desc').value,
     active: document.getElementById('pf_active').checked,
