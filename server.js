@@ -323,7 +323,31 @@ async function saveToSupabase(resource, value) {
     if (resource === "products") {
       const rows = Array.isArray(value) ? value : [value];
       const normalized = rows.map(normalizeProductForDb);
+      const ids = normalized.filter(r => r.id !== undefined && r.id !== null).map(r => r.id);
+      if (ids.length > 0) {
+        const { error: deleteError } = await supabase.from("products").delete().not("id", "in", `(${ids.join(",")})`);
+        if (deleteError) throw deleteError;
+      } else {
+        const { error: deleteError } = await supabase.from("products").delete().neq("id", 0);
+        if (deleteError) throw deleteError;
+      }
       const { error } = await supabase.from("products").upsert(normalized, { onConflict: "id" }).select();
+      if (error) throw error;
+      return true;
+    }
+
+    if (resource === "categories") {
+      const rows = Array.isArray(value) ? value : [value];
+      const normalized = rows.map(normalizeCategoryForDb);
+      const ids = normalized.filter(r => r.id !== undefined && r.id !== null).map(r => r.id);
+      if (ids.length > 0) {
+        const { error: deleteError } = await supabase.from("categories").delete().not("id", "in", `(${ids.join(",")})`);
+        if (deleteError) throw deleteError;
+      } else {
+        const { error: deleteError } = await supabase.from("categories").delete().neq("id", 0);
+        if (deleteError) throw deleteError;
+      }
+      const { error } = await supabase.from("categories").upsert(normalized, { onConflict: "id" }).select();
       if (error) throw error;
       return true;
     }
