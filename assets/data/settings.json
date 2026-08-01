@@ -1,0 +1,8 @@
+{
+  "storeName": "Shine Globe",
+  "currency": "INR",
+  "taxEnabled": true,
+  "inventoryTracking": true,
+  "shippingThreshold": 25000,
+  "freeShippingThreshold": 25000
+}
