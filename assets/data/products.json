@@ -1,33 +1,5 @@
 [
   {
-    "id": 1,
-    "name": "Disposable Nitrile Gloves (100pk)",
-    "category": "Disposable Products",
-    "brand": "SafeGuard",
-    "price": 12.99,
-    "oldPrice": 16.99,
-    "rating": 4.5,
-    "reviews": 210,
-    "stock": 120,
-    "badge": "Best Seller",
-    "image": "https://images.unsplash.com/photo-1584634731339-252c581abfc5?w=600",
-    "desc": "Powder-free nitrile gloves, 100 count box. Latex-free and puncture resistant, ideal for food service, cleaning, and medical use."
-  },
-  {
-    "id": 2,
-    "name": "Disposable Face Masks (50pk)",
-    "category": "Disposable Products",
-    "brand": "SafeGuard",
-    "price": 9.49,
-    "oldPrice": 12.99,
-    "rating": 4.3,
-    "reviews": 340,
-    "stock": 200,
-    "badge": "Sale",
-    "image": "https://images.unsplash.com/photo-1605845466622-5f9c8b6c4a8c?w=600",
-    "desc": "3-ply disposable face masks with adjustable ear loops and a soft inner lining for all-day comfort."
-  },
-  {
     "id": 3,
     "name": "Disposable Paper Cups (200pk)",
     "category": "Disposable Products",
@@ -39,7 +11,8 @@
     "stock": 75,
     "badge": "",
     "image": "https://images.unsplash.com/photo-1577937927133-66ef06acdf18?w=600",
-    "desc": "Compostable paper cups, perfect for hot or cold beverages at home or in the office."
+    "desc": "Compostable paper cups, perfect for hot or cold beverages at home or in the office.",
+    "active": true
   },
   {
     "id": 4,
@@ -53,7 +26,8 @@
     "stock": 0,
     "badge": "Out of Stock",
     "image": "https://images.unsplash.com/photo-1610450949065-1f2841536c88?w=600",
-    "desc": "Heavy-duty disposable forks, knives, and spoons made from biodegradable plant starch."
+    "desc": "Heavy-duty disposable forks, knives, and spoons made from biodegradable plant starch.",
+    "active": true
   },
   {
     "id": 5,
@@ -67,7 +41,8 @@
     "stock": 160,
     "badge": "Best Seller",
     "image": "https://images.unsplash.com/photo-1583947581924-860bda6a26df?w=600",
-    "desc": "Multi-surface cleaning spray that cuts through grease and grime, leaving a fresh citrus scent."
+    "desc": "Multi-surface cleaning spray that cuts through grease and grime, leaving a fresh citrus scent.",
+    "active": true
   },
   {
     "id": 6,
@@ -81,7 +56,8 @@
     "stock": 140,
     "badge": "New",
     "image": "https://images.unsplash.com/photo-1563453392212-326f5e854473?w=600",
-    "desc": "Lint-free microfiber cloths that lift dust and grime without scratching surfaces."
+    "desc": "Lint-free microfiber cloths that lift dust and grime without scratching surfaces.",
+    "active": true
   },
   {
     "id": 7,
@@ -95,7 +71,8 @@
     "stock": 40,
     "badge": "Sale",
     "image": "https://images.unsplash.com/photo-1585421514738-01798e348b17?w=600",
-    "desc": "Concentrated floor cleaner suitable for tile, laminate, and vinyl floors. Streak-free finish."
+    "desc": "Concentrated floor cleaner suitable for tile, laminate, and vinyl floors. Streak-free finish.",
+    "active": true
   },
   {
     "id": 8,
@@ -109,7 +86,8 @@
     "stock": 210,
     "badge": "",
     "image": "https://images.unsplash.com/photo-1622372738946-62e02505feb3?w=600",
-    "desc": "Streak-free glass cleaner formulated with ammonia for crystal-clear windows and mirrors."
+    "desc": "Streak-free glass cleaner formulated with ammonia for crystal-clear windows and mirrors.",
+    "active": true
   },
   {
     "id": 9,
@@ -123,7 +101,8 @@
     "stock": 90,
     "badge": "Best Seller",
     "image": "https://images.unsplash.com/photo-1584362917165-526a968579e8?w=600",
-    "desc": "Fast, accurate digital thermometer with fever alert and memory recall function."
+    "desc": "Fast, accurate digital thermometer with fever alert and memory recall function.",
+    "active": true
   },
   {
     "id": 10,
@@ -137,7 +116,8 @@
     "stock": 60,
     "badge": "New",
     "image": "https://images.unsplash.com/photo-1603398938378-e54eab446dde?w=600",
-    "desc": "Comprehensive first aid kit for home, office, or travel with bandages, antiseptics, and tools."
+    "desc": "Comprehensive first aid kit for home, office, or travel with bandages, antiseptics, and tools.",
+    "active": true
   },
   {
     "id": 11,
@@ -151,7 +131,8 @@
     "stock": 300,
     "badge": "",
     "image": "https://images.unsplash.com/photo-1631815589968-fdb09a223b1e?w=600",
-    "desc": "Flexible fabric bandages in assorted sizes for everyday cuts and scrapes."
+    "desc": "Flexible fabric bandages in assorted sizes for everyday cuts and scrapes.",
+    "active": true
   },
   {
     "id": 12,
@@ -165,7 +146,8 @@
     "stock": 35,
     "badge": "Sale",
     "image": "https://images.unsplash.com/photo-1559757175-5700dde675bc?w=600",
-    "desc": "Automatic upper-arm blood pressure monitor with large backlit display and irregular heartbeat detection."
+    "desc": "Automatic upper-arm blood pressure monitor with large backlit display and irregular heartbeat detection.",
+    "active": true
   },
   {
     "id": 13,
@@ -179,7 +161,8 @@
     "stock": 250,
     "badge": "Best Seller",
     "image": "https://images.unsplash.com/photo-1584744982491-665216d95f8b?w=600",
-    "desc": "70% alcohol hand sanitizer gel that kills 99.9% of germs while moisturizing skin."
+    "desc": "70% alcohol hand sanitizer gel that kills 99.9% of germs while moisturizing skin.",
+    "active": true
   },
   {
     "id": 14,
@@ -193,7 +176,8 @@
     "stock": 180,
     "badge": "",
     "image": "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600",
-    "desc": "Gentle antibacterial hand wash enriched with aloe vera for soft, clean hands."
+    "desc": "Gentle antibacterial hand wash enriched with aloe vera for soft, clean hands.",
+    "active": true
   },
   {
     "id": 15,
@@ -207,7 +191,8 @@
     "stock": 130,
     "badge": "Sale",
     "image": "https://images.unsplash.com/photo-1584556812952-905ffd0c611a?w=600",
-    "desc": "3-ply ultra-soft toilet paper, 24 rolls, gentle on skin and septic-safe."
+    "desc": "3-ply ultra-soft toilet paper, 24 rolls, gentle on skin and septic-safe.",
+    "active": true
   },
   {
     "id": 16,
@@ -221,7 +206,8 @@
     "stock": 95,
     "badge": "New",
     "image": "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600",
-    "desc": "Soft, absorbent facial tissues with lotion for sensitive skin, 6-box pack."
+    "desc": "Soft, absorbent facial tissues with lotion for sensitive skin, 6-box pack.",
+    "active": true
   },
   {
     "id": 17,
@@ -235,7 +221,8 @@
     "stock": 100,
     "badge": "Best Seller",
     "image": "https://images.unsplash.com/photo-1610557892470-55d587f88e96?w=600",
-    "desc": "Triple-action laundry pods for deep cleaning, stain removal, and a long-lasting fresh scent."
+    "desc": "Triple-action laundry pods for deep cleaning, stain removal, and a long-lasting fresh scent.",
+    "active": true
   },
   {
     "id": 18,
@@ -249,7 +236,8 @@
     "stock": 200,
     "badge": "",
     "image": "https://images.unsplash.com/photo-1602910344008-22f323cc1817?w=600",
-    "desc": "Long-lasting air freshener spray with a relaxing lavender fragrance."
+    "desc": "Long-lasting air freshener spray with a relaxing lavender fragrance.",
+    "active": true
   },
   {
     "id": 19,
@@ -263,7 +251,8 @@
     "stock": 150,
     "badge": "Sale",
     "image": "https://images.unsplash.com/photo-1604335399105-a0c585fd81a1?w=600",
-    "desc": "Extra-strong drawstring trash bags that resist tears and leaks, 30-gallon capacity."
+    "desc": "Extra-strong drawstring trash bags that resist tears and leaks, 30-gallon capacity.",
+    "active": true
   },
   {
     "id": 20,
@@ -277,7 +266,8 @@
     "stock": 80,
     "badge": "New",
     "image": "https://images.unsplash.com/photo-1565636192335-5d0e1a0e0a8b?w=600",
-    "desc": "Energy-efficient LED bulbs, soft white, 60W equivalent, rated for 15,000 hours."
+    "desc": "Energy-efficient LED bulbs, soft white, 60W equivalent, rated for 15,000 hours.",
+    "active": true
   },
   {
     "id": 21,
@@ -291,7 +281,8 @@
     "stock": 70,
     "badge": "Sale",
     "image": "https://images.unsplash.com/photo-1605600659873-d808a13e4d2a?w=600",
-    "desc": "Durable corrugated boxes in assorted sizes, ideal for shipping and storage."
+    "desc": "Durable corrugated boxes in assorted sizes, ideal for shipping and storage.",
+    "active": true
   },
   {
     "id": 22,
@@ -305,7 +296,8 @@
     "stock": 60,
     "badge": "",
     "image": "https://images.unsplash.com/photo-1591290619762-d0aebcd6ee8a?w=600",
-    "desc": "Protective bubble cushioning wrap for fragile items during shipping and moving."
+    "desc": "Protective bubble cushioning wrap for fragile items during shipping and moving.",
+    "active": true
   },
   {
     "id": 23,
@@ -319,7 +311,8 @@
     "stock": 190,
     "badge": "Best Seller",
     "image": "https://images.unsplash.com/photo-1607344645866-009c320c5ab0?w=600",
-    "desc": "Heavy-duty clear packing tape with strong adhesive for secure box sealing."
+    "desc": "Heavy-duty clear packing tape with strong adhesive for secure box sealing.",
+    "active": true
   },
   {
     "id": 24,
@@ -333,7 +326,8 @@
     "stock": 85,
     "badge": "Best Seller",
     "image": "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600",
-    "desc": "Premium long-grain organic basmati rice, aromatic and fluffy when cooked."
+    "desc": "Premium long-grain organic basmati rice, aromatic and fluffy when cooked.",
+    "active": true
   },
   {
     "id": 25,
@@ -347,7 +341,8 @@
     "stock": 110,
     "badge": "New",
     "image": "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600",
-    "desc": "Cold-pressed extra virgin olive oil with rich flavor, perfect for cooking and dressings."
+    "desc": "Cold-pressed extra virgin olive oil with rich flavor, perfect for cooking and dressings.",
+    "active": true
   },
   {
     "id": 26,
@@ -361,7 +356,8 @@
     "stock": 75,
     "badge": "Sale",
     "image": "https://images.unsplash.com/photo-1599599810769-bcde5a160d32?w=600",
-    "desc": "Premium roasted mixed nuts including almonds, cashews, and walnuts."
+    "desc": "Premium roasted mixed nuts including almonds, cashews, and walnuts.",
+    "active": true
   },
   {
     "id": 27,
@@ -375,7 +371,8 @@
     "stock": 100,
     "badge": "Sale",
     "image": "https://images.unsplash.com/photo-1568205612837-017257d2310a?w=600",
-    "desc": "Bright white 80gsm A4 copy paper, smooth printing on both sides, 5-ream pack."
+    "desc": "Bright white 80gsm A4 copy paper, smooth printing on both sides, 5-ream pack.",
+    "active": true
   },
   {
     "id": 28,
@@ -389,7 +386,8 @@
     "stock": 210,
     "badge": "",
     "image": "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600",
-    "desc": "Smooth-writing ballpoint pens with comfort grip, medium point, black ink."
+    "desc": "Smooth-writing ballpoint pens with comfort grip, medium point, black ink.",
+    "active": true
   },
   {
     "id": 29,
@@ -403,7 +401,8 @@
     "stock": 150,
     "badge": "New",
     "image": "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=600",
-    "desc": "Bright, repositionable sticky notes in assorted colors for notes and reminders."
+    "desc": "Bright, repositionable sticky notes in assorted colors for notes and reminders.",
+    "active": true
   },
   {
     "id": 30,
@@ -417,6 +416,7 @@
     "stock": 55,
     "badge": "Sale",
     "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?w=600",
-    "desc": "Multi-compartment desk organizer to keep pens, files, and supplies neatly arranged."
+    "desc": "Multi-compartment desk organizer to keep pens, files, and supplies neatly arranged.",
+    "active": true
   }
 ]
