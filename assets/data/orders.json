@@ -10,6 +10,16 @@
     "status": "Delivered"
   },
   {
+    "id": "SG10241",
+    "customer": "Sofia Russo",
+    "email": "sofia@example.com",
+    "date": "2026-06-23",
+    "items": 3,
+    "total": 58.1,
+    "payment": "UPI",
+    "status": "Refunded"
+  },
+  {
     "id": "SG10256",
     "customer": "Daniel Cho",
     "email": "daniel@example.com",
@@ -18,6 +28,36 @@
     "total": 29.98,
     "payment": "PayPal",
     "status": "Shipped"
+  },
+  {
+    "id": "SG10265",
+    "customer": "Jordan Park",
+    "email": "jordan@example.com",
+    "date": "2026-06-25",
+    "items": 6,
+    "total": 154.75,
+    "payment": "PayPal",
+    "status": "Delivered"
+  },
+  {
+    "id": "SG10287",
+    "customer": "Omar Siddiqui",
+    "email": "omar@example.com",
+    "date": "2026-06-26",
+    "items": 2,
+    "total": 41.3,
+    "payment": "Credit Card",
+    "status": "Delivered"
+  },
+  {
+    "id": "SG10298",
+    "customer": "Lena Kowalski",
+    "email": "lena@example.com",
+    "date": "2026-06-28",
+    "items": 4,
+    "total": 89.5,
+    "payment": "Debit Card",
+    "status": "Cancelled"
   },
   {
     "id": "SG10301",
@@ -38,45 +78,5 @@
     "total": 12.99,
     "payment": "Cash on Delivery",
     "status": "Pending"
-  },
-  {
-    "id": "SG10298",
-    "customer": "Lena Kowalski",
-    "email": "lena@example.com",
-    "date": "2026-06-28",
-    "items": 4,
-    "total": 89.5,
-    "payment": "Debit Card",
-    "status": "Cancelled"
-  },
-  {
-    "id": "SG10287",
-    "customer": "Omar Siddiqui",
-    "email": "omar@example.com",
-    "date": "2026-06-26",
-    "items": 2,
-    "total": 41.3,
-    "payment": "Credit Card",
-    "status": "Delivered"
-  },
-  {
-    "id": "SG10265",
-    "customer": "Jordan Park",
-    "email": "jordan@example.com",
-    "date": "2026-06-25",
-    "items": 6,
-    "total": 154.75,
-    "payment": "PayPal",
-    "status": "Delivered"
-  },
-  {
-    "id": "SG10241",
-    "customer": "Sofia Russo",
-    "email": "sofia@example.com",
-    "date": "2026-06-23",
-    "items": 3,
-    "total": 58.1,
-    "payment": "UPI",
-    "status": "Refunded"
   }
 ]

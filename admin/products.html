@@ -183,11 +183,19 @@ async function saveProduct(){
     badge: document.getElementById('pf_badge').value,
     desc: document.getElementById('pf_desc').value,
     active: document.getElementById('pf_active').checked,
+    sku: document.getElementById('pf_sku').value.trim(),
     rating: 4.5, reviews: 0
   };
   if(id){
     const idx = allProducts.findIndex(p=>p.id===Number(id));
-    allProducts[idx] = { ...allProducts[idx], ...data };
+    const existing = allProducts[idx] || {};
+    allProducts[idx] = {
+      ...existing,
+      ...data,
+      rating: existing.rating ?? data.rating,
+      reviews: existing.reviews ?? data.reviews,
+      id: Number(id)
+    };
   } else {
     const newId = Math.max(...allProducts.map(p=>p.id), 0) + 1;
     allProducts.push({ id:newId, ...data });

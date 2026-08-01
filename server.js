@@ -148,26 +148,149 @@ function saveResource(resource, value) {
   return value;
 }
 
+function normalizeCategoryForDb(category) {
+  if (!category || typeof category !== "object") return category;
+  return {
+    id: category.id,
+    name: category.name ?? "",
+    slug: category.slug ?? "",
+    description: category.desc ?? category.description ?? null,
+    icon: category.icon ?? null,
+    color: category.color ?? null,
+    banner: category.banner ?? null,
+    seo_title: category.seoTitle ?? null,
+    seo_description: category.seoDesc ?? null,
+    keywords: category.keywords ?? null,
+    active: category.active !== false,
+    featured: !!category.featured,
+    created_at: category.created ?? new Date().toISOString().slice(0, 10)
+  };
+}
+
+function normalizeCategoryFromDb(row) {
+  if (!row || typeof row !== "object") return row;
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    desc: row.description || row.desc || "",
+    icon: row.icon || "fa-tag",
+    color: row.color || "#2563EB",
+    banner: row.banner || "",
+    seoTitle: row.seo_title || row.seoTitle || "",
+    seoDesc: row.seo_description || row.seoDesc || "",
+    keywords: row.keywords || "",
+    active: row.active !== false,
+    featured: !!row.featured,
+    created: row.created_at || row.created || new Date().toISOString().slice(0, 10)
+  };
+}
+
+function normalizeSettingsForDb(settings) {
+  const value = settings && typeof settings === "object" ? settings : {};
+  return {
+    id: 1,
+    site_name: value.storeName || value.site_name || "Shine Globe",
+    site_email: value.storeEmail || value.site_email || null,
+    phone: value.phone || null,
+    address: value.address || null,
+    logo: value.logo || null,
+    updated_at: new Date().toISOString()
+  };
+}
+
+function normalizeProductForDb(product) {
+  if (!product || typeof product !== "object") return product;
+  return {
+    id: product.id,
+    name: product.name ?? "",
+    category: product.category ?? "",
+    brand: product.brand ?? "",
+    price: Number(product.price ?? 0),
+    rating: Number(product.rating ?? 4.5),
+    reviews: Number(product.reviews ?? 0),
+    stock: Number(product.stock ?? 0),
+    badge: product.badge ?? "",
+    image: product.image ?? "",
+    desc: product.desc ?? "",
+    oldPrice: product.oldPrice ?? null
+  };
+}
+
+function normalizeProductFromDb(row) {
+  if (!row || typeof row !== "object") return row;
+  return {
+    id: row.id,
+    name: row.name,
+    category: row.category,
+    brand: row.brand,
+    price: Number(row.price ?? 0),
+    oldPrice: row.oldPrice ?? null,
+    rating: Number(row.rating ?? 4.5),
+    reviews: Number(row.reviews ?? 0),
+    stock: Number(row.stock ?? 0),
+    badge: row.badge || "",
+    image: row.image || "",
+    desc: row.desc || "",
+    active: true
+  };
+}
+
+function normalizeSettingsFromDb(row) {
+  const base = {
+    storeName: "Shine Globe",
+    currency: "INR",
+    taxEnabled: true,
+    inventoryTracking: true,
+    shippingThreshold: 25000,
+    freeShippingThreshold: 25000
+  };
+
+  if (!row || typeof row !== "object") return base;
+
+  return {
+    ...base,
+    storeName: row.site_name || row.storeName || base.storeName,
+    storeEmail: row.site_email || row.storeEmail || null,
+    phone: row.phone || null,
+    address: row.address || null,
+    logo: row.logo || null,
+    currency: row.currency || base.currency,
+    taxEnabled: typeof row.tax_enabled === "boolean" ? row.tax_enabled : (row.taxEnabled ?? base.taxEnabled),
+    inventoryTracking: typeof row.inventory_tracking === "boolean" ? row.inventory_tracking : (row.inventoryTracking ?? base.inventoryTracking),
+    shippingThreshold: row.shipping_threshold ?? row.shippingThreshold ?? base.shippingThreshold,
+    freeShippingThreshold: row.free_shipping_threshold ?? row.freeShippingThreshold ?? base.freeShippingThreshold
+  };
+}
+
 async function loadFromSupabase(resource) {
   if (!supabase) return null;
-  const table = resource === "settings" ? "settings" : resource;
 
   try {
-    const { data, error } = await supabase.from(table).select("*").order("id", { ascending: true });
-    if (error) throw error;
-
-    if (!data || data.length === 0) return null;
-
-    if (resource === "settings") {
-      const first = data[0];
-      if (first && typeof first === "object") {
-        if (first.data && typeof first.data === "object") return first.data;
-        if (first.value && typeof first.value === "object") return first.value;
-        if (first.settings && typeof first.settings === "object") return first.settings;
-      }
-      return data[0];
+    if (resource === "categories") {
+      const { data, error } = await supabase.from("categories").select("*").order("id", { ascending: true });
+      if (error) throw error;
+      if (!data || data.length === 0) return null;
+      return data.map(normalizeCategoryFromDb);
     }
 
+    if (resource === "settings") {
+      const { data, error } = await supabase.from("settings").select("*").order("id", { ascending: true });
+      if (error) throw error;
+      if (!data || data.length === 0) return null;
+      return normalizeSettingsFromDb(data[0]);
+    }
+
+    if (resource === "products") {
+      const { data, error } = await supabase.from("products").select("*").order("id", { ascending: true });
+      if (error) throw error;
+      if (!data || data.length === 0) return null;
+      return data.map(normalizeProductFromDb);
+    }
+
+    const { data, error } = await supabase.from(resource).select("*").order("id", { ascending: true });
+    if (error) throw error;
+    if (!data || data.length === 0) return null;
     return data.map(row => row.data && typeof row.data === "object" ? row.data : row);
   } catch (error) {
     console.warn(`[supabase] could not load ${resource}`, error.message);
@@ -177,11 +300,27 @@ async function loadFromSupabase(resource) {
 
 async function saveToSupabase(resource, value) {
   if (!supabase) return false;
-  const table = resource === "settings" ? "settings" : resource;
 
   try {
     if (resource === "settings") {
-      const { error } = await supabase.from(table).upsert({ id: 1, data: value }, { onConflict: "id" }).select();
+      const row = normalizeSettingsForDb(value);
+      const { error } = await supabase.from("settings").upsert(row, { onConflict: "id" }).select();
+      if (error) throw error;
+      return true;
+    }
+
+    if (resource === "categories") {
+      const rows = Array.isArray(value) ? value : [value];
+      const normalized = rows.map(normalizeCategoryForDb);
+      const { error } = await supabase.from("categories").upsert(normalized, { onConflict: "id" }).select();
+      if (error) throw error;
+      return true;
+    }
+
+    if (resource === "products") {
+      const rows = Array.isArray(value) ? value : [value];
+      const normalized = rows.map(normalizeProductForDb);
+      const { error } = await supabase.from("products").upsert(normalized, { onConflict: "id" }).select();
       if (error) throw error;
       return true;
     }
@@ -194,7 +333,7 @@ async function saveToSupabase(resource, value) {
       return copy;
     });
 
-    const { error } = await supabase.from(table).upsert(normalized, { onConflict: "id" }).select();
+    const { error } = await supabase.from(resource).upsert(normalized, { onConflict: "id" }).select();
     if (error) throw error;
     return true;
   } catch (error) {
