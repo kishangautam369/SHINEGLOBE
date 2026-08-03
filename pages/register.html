@@ -48,13 +48,15 @@ document.getElementById('registerForm').addEventListener('submit', function(e){
   const firstName = this.querySelectorAll('input')[0].value.trim();
   const lastName = this.querySelectorAll('input')[1].value.trim();
   const email = this.querySelectorAll('input')[2].value.trim().toLowerCase();
-  SG.store.set('sg_user', {
+  const user = {
     name: `${firstName} ${lastName}`.trim() || 'Shine Globe Customer',
     email,
     remember: true,
     lastLogin: new Date().toISOString()
-  });
+  };
+  SG.store.set('sg_user', user);
   localStorage.setItem('sg_remember_me', '1');
+  SG.syncUserToServer?.(user).catch(()=>{});
   SG.toast('Account created! Redirecting to your profile.');
   setTimeout(() => window.location.href = 'profile.html', 1200);
 });

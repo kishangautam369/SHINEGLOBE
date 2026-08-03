@@ -46,6 +46,24 @@ const SG = (() => {
     if(remember){ localStorage.setItem('sg_remember_me', '1'); }
     else { localStorage.removeItem('sg_remember_me'); }
 
+    // try to fetch server profile (if any) and merge it, then persist
+    (async () => {
+      try{
+        const res = await fetch(`${API_BASE}/customers`, { cache:'no-store' });
+        if(res.ok){
+          const list = await res.json();
+          const found = Array.isArray(list) ? list.find(c => String(c.email||'').toLowerCase() === cleanEmail) : null;
+          if(found){
+            const merged = { ...user, name: found.name || user.name, joined: found.joined || new Date().toISOString(), lastLogin: new Date().toISOString() };
+            store.set('sg_user', merged);
+            await syncUserToServer(merged);
+            return;
+          }
+        }
+      }catch(e){ /* ignore */ }
+      // fallback: ensure server has at least this profile
+      syncUserToServer(user).catch(()=>{});
+    })();
     return true;
   }
   function loginWithGoogle(email = '', name = ''){
@@ -69,7 +87,29 @@ const SG = (() => {
 
     store.set('sg_user', user);
     localStorage.setItem('sg_remember_me', '1');
+    // background-sync profile to shared server so it appears on other devices
+    syncUserToServer(user).catch(() => {});
     return true;
+  }
+
+  /* Persist customer profile to shared API (best-effort, background)
+     This fetches `/api/customers`, updates or appends the user record,
+     and PUTs the full list back so server + Supabase stay in sync. */
+  async function syncUserToServer(user){
+    if(!user || !user.email) return false;
+    try{
+      const res = await fetch(`${API_BASE}/customers`, { cache:'no-store' });
+      if(!res.ok) return false;
+      const list = await res.json();
+      const idx = Array.isArray(list) ? list.findIndex(c => String(c.email||'').toLowerCase() === String(user.email||'').toLowerCase()) : -1;
+      const next = Array.isArray(list) ? list.slice() : [];
+      const now = new Date().toISOString();
+      const record = { id: idx>=0 ? next[idx].id : (Math.max(0, ...next.map(x=>Number(x.id)||0)) + 1), name: user.name || '', email: user.email || '', joined: next[idx]?.joined || now, lastLogin: now };
+      if(idx >= 0) next[idx] = { ...next[idx], ...record };
+      else next.push(record);
+      await fetch(`${API_BASE}/customers`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(next) });
+      return true;
+    }catch(e){ console.warn('[sync] could not persist profile to server', e.message || e); return false; }
   }
   function logout(redirectTo = 'login.html'){
     localStorage.removeItem('sg_user');
@@ -361,7 +401,8 @@ const SG = (() => {
     toggleWishlist, findProduct, productCard, ratingStars, quickView, addToCompare, ripple,
     trackRecentlyViewed, toast, acceptCookies, store, updateCounts, getCurrentUser, isLoggedIn,
     login, loginWithGoogle, logout, getCategories, loadCategories,
-    get products(){ return PRODUCTS; }, loadProducts
+    get products(){ return PRODUCTS; }, loadProducts,
+    syncUserToServer
   };
 
   window.SG = API;
