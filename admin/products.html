@@ -56,7 +56,15 @@
           <div class="row g-3">
             <div class="col-md-8"><label class="form-label small fw-semibold">Product Name</label><input required class="form-control" id="pf_name"></div>
             <div class="col-md-4"><label class="form-label small fw-semibold">SKU</label><input class="form-control" id="pf_sku" placeholder="Auto-generated"></div>
-            <div class="col-md-6"><label class="form-label small fw-semibold">Category</label><input required class="form-control" id="pf_category" list="catList"><datalist id="catList"></datalist></div>
+            <div class="col-md-6">
+            <label class="form-label small fw-semibold">Category</label>
+            <div class="input-group">
+              <select required class="form-select" id="pf_category"></select>
+              <button type="button" class="btn btn-outline-secondary" id="pf_category_link" title="Open category" style="display:none;">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              </button>
+            </div>
+          </div>
             <div class="col-md-6"><label class="form-label small fw-semibold">Brand</label><input class="form-control" id="pf_brand"></div>
             <div class="col-md-4"><label class="form-label small fw-semibold">Price (₹)</label><input required type="number" step="0.01" class="form-control" id="pf_price"></div>
             <div class="col-md-4"><label class="form-label small fw-semibold">Old Price (₹)</label><input type="number" step="0.01" class="form-control" id="pf_oldprice"></div>
@@ -80,18 +88,23 @@
 <script src="assets/admin.js"></script>
 <script>
 ADMIN.initLayout('products.html', 'Products');
-let allProducts = [], page = 1, perPage = 8, currentFilters = {};
+let allProducts = [], page = 1, perPage = 8, currentFilters = {}, categoryOptions = [];
 
 document.addEventListener('admin:dataReady', () => {
   allProducts = ADMIN.store('admin_products', []);
-  const cats = [...new Set(allProducts.map(p=>p.category))];
-  document.getElementById('prodCatFilter').innerHTML += cats.map(c=>`<option value="${c}">${c}</option>`).join('');
-  document.getElementById('catList').innerHTML = cats.map(c=>`<option value="${c}">`).join('');
+  const storedCats = ADMIN.store('admin_categories', []) || [];
+  const productCats = [...new Set(allProducts.map(p => p.category).filter(Boolean))];
+  categoryOptions = storedCats.length ? storedCats.map(c => ({ name: c.name, slug: c.slug || c.name })) : productCats.map(name => ({ name, slug: name }));
+
+  document.getElementById('prodCatFilter').innerHTML += categoryOptions.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+  document.getElementById('pf_category').innerHTML = ['<option value="">Select category</option>', ...categoryOptions.map(c=>`<option value="${c.name}">${c.name}</option>`)].join('');
+  updateCategoryLinkButton();
   render();
 
   document.getElementById('prodSearch').addEventListener('input', () => { page=1; render(); });
   document.getElementById('prodCatFilter').addEventListener('change', () => { page=1; render(); });
   document.getElementById('prodStatusFilter').addEventListener('change', () => { page=1; render(); });
+  document.getElementById('pf_category').addEventListener('change', updateCategoryLinkButton);
   document.getElementById('selectAll').addEventListener('change', function(){
     document.querySelectorAll('.row-check').forEach(cb => cb.checked = this.checked);
     toggleBulkBtn();
@@ -101,6 +114,25 @@ document.addEventListener('admin:dataReady', () => {
 function toggleBulkBtn(){
   const any = [...document.querySelectorAll('.row-check')].some(cb=>cb.checked);
   document.getElementById('bulkDeleteBtn').style.display = any ? 'inline-block' : 'none';
+}
+
+function updateCategoryLinkButton(){
+  const select = document.getElementById('pf_category');
+  const linkBtn = document.getElementById('pf_category_link');
+  const categoryName = select.value.trim();
+  if(!categoryName){
+    linkBtn.style.display = 'none';
+    linkBtn.onclick = null;
+    return;
+  }
+  linkBtn.style.display = 'inline-flex';
+  linkBtn.onclick = () => openCategoryPage(categoryName);
+}
+
+function openCategoryPage(categoryName){
+  const category = categoryOptions.find(c => c.name === categoryName);
+  const slug = category ? category.slug : categoryName;
+  window.open(`../pages/shop.html?cat=${encodeURIComponent(categoryName)}`, '_blank');
 }
 
 function filteredList(){
