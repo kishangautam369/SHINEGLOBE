@@ -31,6 +31,7 @@ const ADMIN = (() => {
     const saved = await res.json();
     setStore(`admin_${name}`, saved);
     console.info(`[sync] Admin saved ${name}: ${Array.isArray(saved) ? saved.length : 'settings'} record(s).`);
+    document.dispatchEvent(new CustomEvent('admin:localUpdate', { detail:{ resource: name, data: saved } }));
     return saved;
   }
 

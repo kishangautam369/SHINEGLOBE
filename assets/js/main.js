@@ -365,6 +365,13 @@ const SG = (() => {
     return PRODUCTS;
   }
 
+  async function refreshCatalog(){
+    await loadProducts(true);
+    initSearch();
+    document.dispatchEvent(new CustomEvent('sg:productsReady', { detail: PRODUCTS }));
+    document.dispatchEvent(new CustomEvent('sg:categoriesReady', { detail: CATEGORIES }));
+  }
+
   function init(){
     initTheme();
     initUtilities();
@@ -383,11 +390,8 @@ const SG = (() => {
     events.addEventListener('update', async event => {
       const { resource } = JSON.parse(event.data);
       if(resource === 'products' || resource === 'categories'){
-        await loadProducts(true);
-        initSearch();
-        document.dispatchEvent(new CustomEvent('sg:productsReady', { detail: PRODUCTS }));
-        document.dispatchEvent(new CustomEvent('sg:categoriesReady', { detail: CATEGORIES }));
-        console.info(`[sync] Refreshed storefront after ${resource} update.`);
+        await refreshCatalog();
+        toast('Catalog updated with latest changes.', 'info');
       }
     });
     events.onerror = () => console.warn('[sync] Update stream disconnected; reload the page to fetch the latest catalog.');

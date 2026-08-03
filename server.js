@@ -458,9 +458,24 @@ http.createServer(async (req, res) => {
   console.log(`🚀 Shine Globe running on http://localhost:${PORT}`);
   const initialSeed = getSeedData();
   for (const resource of ["products", "categories", "orders", "customers", "settings"]) {
-    const value = initialSeed[resource] ?? (resource === "categories" ? buildCategoriesFromProducts(initialSeed.products) : resource === "settings" ? {} : []);
-    saveResource(resource, value);
-    await saveToSupabase(resource, value);
+    const filePath = path.join(DATA_DIR, RESOURCE_FILES[resource] || `${resource}.json`);
+    const fallbackValue = resource === "settings" ? {} : [];
+    const localValue = fs.existsSync(filePath)
+      ? readJsonFile(filePath, fallbackValue)
+      : (initialSeed[resource] ?? (resource === "categories" ? buildCategoriesFromProducts(initialSeed.products) : fallbackValue));
+
+    const remoteValue = await loadFromSupabase(resource);
+    if (remoteValue !== null) {
+      saveResource(resource, remoteValue);
+      console.log(`[sync] Loaded ${resource} from Supabase and updated local file.`);
+    } else {
+      saveResource(resource, localValue);
+      console.log(`[sync] Supabase ${resource} not available; using local ${resource}.`);
+      if (supabase) {
+        await saveToSupabase(resource, localValue);
+        console.log(`[sync] Pushed local ${resource} data to Supabase.`);
+      }
+    }
   }
-  console.log("✅ Local data files initialized and synced to Supabase when available.");
+  console.log("✅ Local data initialized and synced with Supabase when available.");
 });
