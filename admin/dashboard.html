@@ -87,9 +87,13 @@ function renderDashboard(){
   const lowStock = products.filter(p=>p.stock>0 && p.stock<10).length;
   const outStock = products.filter(p=>p.stock===0).length;
 
+  const todayKey = new Date().toISOString().slice(0,10);
+  const monthKey = new Date().toISOString().slice(0,7);
+  const revenueToday = orders.filter(o => o.date === todayKey).reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+  const monthlyRevenue = orders.filter(o => o.date && o.date.startsWith(monthKey)).reduce((sum, o) => sum + (Number(o.total) || 0), 0);
   const cards = [
-    {label:"Today's Sales", val:'₹'+(totalRevenue*0.04).toFixed(0), icon:'fa-cash-register', color:'#2563EB', bg:'#DBEAFE'},
-    {label:'Monthly Revenue', val:'₹'+totalRevenue.toFixed(0), icon:'fa-indian-rupee-sign', color:'#16A34A', bg:'#DCFCE7'},
+    {label:"Today's Sales", val:'₹'+revenueToday.toFixed(2), icon:'fa-cash-register', color:'#2563EB', bg:'#DBEAFE'},
+    {label:'Monthly Revenue', val:'₹'+monthlyRevenue.toFixed(2), icon:'fa-indian-rupee-sign', color:'#16A34A', bg:'#DCFCE7'},
     {label:'Total Orders', val:orders.length, icon:'fa-receipt', color:'#F59E0B', bg:'#FEF3C7'},
     {label:'Pending Orders', val:pending, icon:'fa-hourglass-half', color:'#DC2626', bg:'#FEE2E2'},
     {label:'Total Customers', val:customers.length, icon:'fa-users', color:'#2563EB', bg:'#DBEAFE'},
@@ -113,23 +117,47 @@ function renderDashboard(){
   document.getElementById('topProducts').innerHTML = top.map(p => `
     <div class="d-flex align-items-center gap-2 mb-3">
       <img src="${p.image}" class="row-thumb">
-      <div class="flex-grow-1"><div class="small fw-semibold">${p.name}</div><div class="text-muted" style="font-size:.75rem;">${p.reviews} sold</div></div>
+      <div class="flex-grow-1"><div class="small fw-semibold">${p.name}</div><div class="text-muted" style="font-size:.75rem;">${p.reviews} reviews</div></div>
       <div class="fw-bold small">₹${(Number(p.price)||0).toFixed(2)}</div>
     </div>`).join('');
 
-  const orderSeries = orders.length ? [Math.min(orders.length, 8), Math.min(orders.length + 2, 12), Math.min(orders.length + 4, 16), Math.min(orders.length + 6, 20), Math.min(orders.length + 8, 24), Math.min(orders.length + 10, 28), Math.max(orders.length, 1)] : [0,0,0,0,0,0,0];
-  const customerSeries = customers.length ? [Math.min(customers.length, 5), Math.min(customers.length + 3, 10), Math.min(customers.length + 6, 15), Math.min(customers.length + 9, 20), Math.min(customers.length + 12, 25), Math.min(customers.length + 15, 30)] : [0,0,0,0,0,0];
+  const lastWeek = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d;
+  });
+  const orderTotalsByDate = orders.reduce((acc, order) => {
+    if (!order.date) return acc;
+    acc[order.date] = (acc[order.date] || 0) + (Number(order.total) || 0);
+    return acc;
+  }, {});
+  const orderChartData = lastWeek.map(d => orderTotalsByDate[d.toISOString().slice(0,10)] || 0);
+  const orderChartLabels = lastWeek.map(d => d.toLocaleDateString('en-US', { weekday: 'short' }));
+
+  const monthLabels = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - (5 - i));
+    return d;
+  });
+  const customerCountsByMonth = customers.reduce((acc, customer) => {
+    if (!customer.joined) return acc;
+    const monthKey = customer.joined.slice(0,7);
+    acc[monthKey] = (acc[monthKey] || 0) + 1;
+    return acc;
+  }, {});
+  const customerSeries = monthLabels.map(d => customerCountsByMonth[d.toISOString().slice(0,7)] || 0);
+  const customerChartLabels = monthLabels.map(d => d.toLocaleDateString('en-US', { month: 'short' }));
 
   new Chart(document.getElementById('revenueChart'), {
     type:'line',
-    data:{ labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets:[{label:'Revenue', data:orderSeries, borderColor:'#2563EB', backgroundColor:'rgba(37,99,235,.1)', fill:true, tension:.4}]},
+    data:{ labels:orderChartLabels, datasets:[{label:'Revenue', data:orderChartData, borderColor:'#2563EB', backgroundColor:'rgba(37,99,235,.1)', fill:true, tension:.4}]},
     options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}
   });
 
   const cats = [...new Set(products.map(p=>p.category))];
   new Chart(document.getElementById('categoryChart'), {
     type:'doughnut',
-    data:{ labels:cats.length ? cats : ['No data'], datasets:[{ data:cats.length ? cats.map(c=>products.filter(p=>p.category===c).length) : [1], backgroundColor:['#2563EB','#F59E0B','#16A34A','#DC2626','#7C3AED','#0EA5E9','#EC4899','#64748B'] }]},
+    data:{ labels:cats.length ? cats : ['No data'], datasets:[{ data:cats.length ? cats.map(c => products.filter(p=>p.category===c).length) : [1], backgroundColor:['#2563EB','#F59E0B','#16A34A','#DC2626','#7C3AED','#0EA5E9','#EC4899','#64748B'] }]},
     options:{plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:10}}}}}
   });
 
@@ -141,7 +169,7 @@ function renderDashboard(){
 
   new Chart(document.getElementById('customerChart'), {
     type:'line',
-    data:{ labels:['Jan','Feb','Mar','Apr','May','Jun'], datasets:[{ label:'Customers', data:customerSeries, borderColor:'#16A34A', backgroundColor:'rgba(22,163,74,.1)', fill:true, tension:.4 }]},
+    data:{ labels:customerChartLabels, datasets:[{ label:'New Customers', data:customerSeries, borderColor:'#16A34A', backgroundColor:'rgba(22,163,74,.1)', fill:true, tension:.4 }]},
     options:{plugins:{legend:{display:false}}}
   });
 }
