@@ -32,7 +32,9 @@ const ICONS = {
 function renderCategoryPage(products){
   const categories = SG.getCategories();
   document.getElementById('catFullGrid').innerHTML = categories.map(c => {
-    const sample = products.find(p => p.category === c.name);
+    const subCats = SG.getSubCategories(c.name) || [];
+    const sample = products.find(p => p.category === c.name) || subCats[0] && products.find(p => p.category === subCats[0].name);
+    const subHtml = subCats.length ? `<div class="mt-3 d-flex flex-wrap gap-2 justify-content-center">${subCats.map(sub => `<a href="shop.html?cat=${encodeURIComponent(sub.name)}" class="badge rounded-pill text-bg-light border text-muted text-decoration-none">${sub.name}</a>`).join('')}</div>` : '';
     return `<div class="col-6 col-md-3" data-aos="fade-up">
       <a href="shop.html?cat=${encodeURIComponent(c.name)}" class="product-card d-block text-decoration-none text-dark">
         <div class="product-img-wrap"><img src="${SG.getImageUrl(sample)}" alt="${c.name}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600'"></div>
@@ -40,6 +42,7 @@ function renderCategoryPage(products){
           <div class="cat-icon mx-auto mb-2" style="width:46px;height:46px;font-size:1.1rem;"><i class="fa-solid ${c.icon || ICONS[c.name] || 'fa-tag'}"></i></div>
           <div class="fw-semibold">${c.name}</div>
           <small class="text-muted">${products.filter(p => p.category === c.name).length} products</small>
+          ${subHtml}
         </div>
       </a></div>`;
   }).join('');

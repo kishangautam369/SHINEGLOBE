@@ -125,6 +125,17 @@
               </div>
             </div>
 
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Parent Category</label>
+              <select class="form-select" id="cf_parent">
+                <option value="">None (top-level category)</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Subcategory Name</label>
+              <input class="form-control" id="cf_subcategory" placeholder="e.g. Floor Cleaners">
+            </div>
+
             <!-- Description -->
             <div class="col-12">
               <label class="form-label small fw-semibold">Description</label>
@@ -288,9 +299,17 @@ function toast(msg, type='success'){
 }
 
 /* ── Init ── */
+function refreshParentCategoryOptions(){
+  const parentSelect = document.getElementById('cf_parent');
+  const topLevelCats = allCats.filter(c => !c.parent);
+  parentSelect.innerHTML = ['<option value="">None (top-level category)</option>', ...topLevelCats.map(c => `<option value="${c.name}">${c.name}</option>`)].join('');
+}
+
 document.addEventListener('admin:dataReady', () => {
   allCats = ADMIN.store('admin_categories', null);
   if(!allCats){ allCats = DEFAULT_CATS; ADMIN.setStore('admin_categories', allCats); }
+
+  refreshParentCategoryOptions();
 
   buildIconPicker();
   buildColorPicker();
@@ -489,6 +508,8 @@ function openCatModal(id){
   document.getElementById('cf_seoTitle').value = c ? (c.seoTitle||'') : '';
   document.getElementById('cf_seoDesc').value = c ? (c.seoDesc||'') : '';
   document.getElementById('cf_keywords').value = c ? (c.keywords||'') : '';
+  document.getElementById('cf_parent').value = c && c.parent ? c.parent : '';
+  document.getElementById('cf_subcategory').value = c && c.parent ? c.name : '';
   document.getElementById('cf_active').checked = c ? c.active : true;
   document.getElementById('cf_featured').checked = c ? (c.featured||false) : false;
   document.getElementById('seoDescCount').textContent = (c?.seoDesc||'').length + ' / 160';
@@ -507,13 +528,17 @@ function openCatModal(id){
 
 /* ── Save ── */
 async function saveCat(){
-  const name = document.getElementById('cf_name').value.trim();
-  if(!name){ toast('Category name is required.','error'); return; }
+  const parentName = document.getElementById('cf_parent').value.trim();
+  const subName = document.getElementById('cf_subcategory').value.trim();
+  const isSubCategory = !!parentName && !!subName;
+  const baseName = isSubCategory ? subName : document.getElementById('cf_name').value.trim();
+
+  if(!baseName){ toast('Category name is required.','error'); return; }
 
   const id = document.getElementById('cf_id').value;
   const data = {
-    name,
-    slug: document.getElementById('cf_slug').value || name.toLowerCase().replace(/[^a-z0-9]+/g,'-'),
+    name: baseName,
+    slug: document.getElementById('cf_slug').value || baseName.toLowerCase().replace(/[^a-z0-9]+/g,'-'),
     desc: document.getElementById('cf_desc').value,
     icon: document.getElementById('cf_icon').value,
     color: document.getElementById('cf_color').value,
@@ -523,21 +548,40 @@ async function saveCat(){
     keywords: document.getElementById('cf_keywords').value,
     active: document.getElementById('cf_active').checked,
     featured: document.getElementById('cf_featured').checked,
+    parent: isSubCategory ? parentName : '',
+    subCategories: [],
     created: id ? (allCats.find(c=>c.id===Number(id))?.created || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0],
   };
 
-  if(id){
-    const idx = allCats.findIndex(c=>c.id===Number(id));
-    allCats[idx] = { ...allCats[idx], ...data };
-    toast('Category updated successfully!');
+  if(isSubCategory){
+    const parentCategory = allCats.find(c => c.name === parentName && !c.parent);
+    if(!parentCategory){ toast('Please choose a valid parent category.','error'); return; }
+    const existingChild = allCats.find(c => c.parent === parentName && c.name === baseName && (!id || c.id !== Number(id)));
+    if(existingChild){ toast('This subcategory already exists under that parent.','error'); return; }
+    if(id){
+      const idx = allCats.findIndex(c=>c.id===Number(id));
+      allCats[idx] = { ...allCats[idx], ...data };
+      toast('Subcategory updated successfully!');
+    } else {
+      const newId = Math.max(...allCats.map(c=>Number(c.id)||0), 0) + 1;
+      allCats.push({ id:newId, ...data });
+      toast('Subcategory added successfully!');
+    }
   } else {
-    const newId = Math.max(...allCats.map(c=>c.id), 0) + 1;
-    allCats.push({ id:newId, ...data });
-    toast('Category added successfully!');
+    if(id){
+      const idx = allCats.findIndex(c=>c.id===Number(id));
+      allCats[idx] = { ...allCats[idx], ...data };
+      toast('Category updated successfully!');
+    } else {
+      const newId = Math.max(...allCats.map(c=>Number(c.id)||0), 0) + 1;
+      allCats.push({ id:newId, ...data });
+      toast('Category added successfully!');
+    }
   }
 
   try { allCats = await ADMIN.saveCollection('categories', allCats); }
   catch(error) { console.error(error); toast('Category was not saved to the shared server.','error'); return; }
+  refreshParentCategoryOptions();
   hideModal('catModal');
   render();
 }

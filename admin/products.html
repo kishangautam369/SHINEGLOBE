@@ -94,10 +94,12 @@ document.addEventListener('admin:dataReady', () => {
   allProducts = ADMIN.store('admin_products', []);
   const storedCats = ADMIN.store('admin_categories', []) || [];
   const productCats = [...new Set(allProducts.map(p => p.category).filter(Boolean))];
-  categoryOptions = storedCats.length ? storedCats.map(c => ({ name: c.name, slug: c.slug || c.name })) : productCats.map(name => ({ name, slug: name }));
+  categoryOptions = storedCats.length
+    ? storedCats.filter(c => c && typeof c === 'object').map(c => ({ name: c.name, label: c.parent ? `${c.parent} / ${c.name}` : c.name, slug: c.slug || c.name }))
+    : productCats.map(name => ({ name, label: name, slug: name }));
 
-  document.getElementById('prodCatFilter').innerHTML += categoryOptions.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
-  document.getElementById('pf_category').innerHTML = ['<option value="">Select category</option>', ...categoryOptions.map(c=>`<option value="${c.name}">${c.name}</option>`)].join('');
+  document.getElementById('prodCatFilter').innerHTML += categoryOptions.map(c=>`<option value="${c.name}">${c.label}</option>`).join('');
+  document.getElementById('pf_category').innerHTML = ['<option value="">Select category</option>', ...categoryOptions.map(c=>`<option value="${c.name}">${c.label}</option>`)].join('');
   updateCategoryLinkButton();
   render();
 

@@ -12,6 +12,8 @@
     "keywords": "disposable items, food disposables, packaging supplies, eco-friendly disposables, hygiene products, catering supplies, Shine Globe",
     "active": true,
     "featured": false,
+    "parent": "",
+    "subCategories": [],
     "created": "2026-08-01T00:00:00"
   },
   {
@@ -27,6 +29,8 @@
     "keywords": "Hygiene Products",
     "active": true,
     "featured": false,
+    "parent": "",
+    "subCategories": [],
     "created": "2026-08-01T00:00:00"
   },
   {
@@ -42,6 +46,8 @@
     "keywords": "Household",
     "active": true,
     "featured": false,
+    "parent": "",
+    "subCategories": [],
     "created": "2026-08-01T00:00:00"
   },
   {
@@ -57,6 +63,8 @@
     "keywords": "Packaging",
     "active": true,
     "featured": false,
+    "parent": "",
+    "subCategories": [],
     "created": "2026-08-01T00:00:00"
   },
   {
@@ -72,6 +80,8 @@
     "keywords": "Office Supplies",
     "active": true,
     "featured": false,
+    "parent": "",
+    "subCategories": [],
     "created": "2026-08-01T00:00:00"
   }
 ]

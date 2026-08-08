@@ -158,13 +158,12 @@ function renderShopFilters(products){
   currentProducts = Array.isArray(products) ? products : [];
   filtersBound = false;
 
-  const categories = SG.getCategories();
-  const cats = categories.map(c => c.name);
+  const categories = SG.getCategoryOptions ? SG.getCategoryOptions() : SG.getCategories().map(c => ({ name: c.name, parent: null, label: c.name }));
   const brands = [...new Set(currentProducts.map(p => p.brand))];
 
-  document.getElementById('filterCategory').innerHTML = cats.map(c => `
-    <div class="form-check"><input class="form-check-input cat-check" type="checkbox" value="${c}" id="c_${c.replace(/\s/g,'')}" ${state.cats.includes(c) ? 'checked' : ''}>
-    <label class="form-check-label" for="c_${c.replace(/\s/g,'')}">${c}</label></div>`).join('');
+  document.getElementById('filterCategory').innerHTML = categories.map(c => `
+    <div class="form-check"><input class="form-check-input cat-check" type="checkbox" value="${c.name}" id="c_${String(c.name).replace(/\s/g,'')}" ${state.cats.includes(c.name) ? 'checked' : ''}>
+    <label class="form-check-label" for="c_${String(c.name).replace(/\s/g,'')}">${c.label || c.name}</label></div>`).join('');
 
   document.getElementById('filterBrand').innerHTML = brands.map(b => `
     <div class="form-check"><input class="form-check-input brand-check" type="checkbox" value="${b}" id="b_${b}">
@@ -179,14 +178,23 @@ function renderShopFilters(products){
 }
 
 function filtered(){
-  return currentProducts.filter(p =>
-    (state.cats.length === 0 || state.cats.includes(p.category)) &&
-    (state.brands.length === 0 || state.brands.includes(p.brand)) &&
-    p.rating >= state.minRating &&
-    (state.maxPrice >= 50 || p.price <= state.maxPrice) &&
-    (!state.stockOnly || p.stock > 0) &&
-    (!state.discountOnly || p.oldPrice)
-  );
+  const allCats = SG.loadCategories ? SG.loadCategories() : [];
+  const parentMap = new Map((allCats || []).map(cat => [cat.name, cat.parent || null]));
+
+  return currentProducts.filter(p => {
+    const inCategory = state.cats.length === 0 || state.cats.some(selected => {
+      if (selected === p.category) return true;
+      const parent = parentMap.get(p.category);
+      return parent && selected === parent;
+    });
+
+    return inCategory &&
+      (state.brands.length === 0 || state.brands.includes(p.brand)) &&
+      p.rating >= state.minRating &&
+      (state.maxPrice >= 50 || p.price <= state.maxPrice) &&
+      (!state.stockOnly || p.stock > 0) &&
+      (!state.discountOnly || p.oldPrice);
+  });
 }
 
 function sorted(list){

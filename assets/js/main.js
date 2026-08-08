@@ -152,18 +152,33 @@ const SG = (() => {
   }
 
   function getCategories(){
-    if(CATEGORIES.length) return CATEGORIES.filter(c => c.active !== false);
-    const names = [...new Set(PRODUCTS.map(p => p.category).filter(Boolean))];
-    return names.map((name, index) => ({
-      id: index + 1,
-      name,
-      slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-      icon: 'fa-tag',
-      color: '#2563EB',
-      active: true,
-      featured: false,
-      created: new Date().toISOString().split('T')[0]
-    }));
+    const categories = CATEGORIES.length ? CATEGORIES : (() => {
+      const names = [...new Set(PRODUCTS.map(p => p.category).filter(Boolean))];
+      return names.map((name, index) => ({
+        id: index + 1,
+        name,
+        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+        icon: 'fa-tag',
+        color: '#2563EB',
+        active: true,
+        featured: false,
+        created: new Date().toISOString().split('T')[0]
+      }));
+    })();
+    return categories.filter(c => c.active !== false && !c.parent);
+  }
+
+  function getSubCategories(parentName){
+    const parentValue = String(parentName || '').trim();
+    if(!parentValue) return [];
+    return (CATEGORIES.length ? CATEGORIES : []).filter(c => c.active !== false && c.parent === parentValue);
+  }
+
+  function getCategoryOptions(){
+    const categories = (CATEGORIES.length ? CATEGORIES : []).filter(c => c.active !== false);
+    const topLevel = categories.filter(c => !c.parent).map(c => ({ name: c.name, parent: null, label: c.name }));
+    const subLevel = categories.filter(c => c.parent).map(c => ({ name: c.name, parent: c.parent, label: `${c.parent} / ${c.name}` }));
+    return [...topLevel, ...subLevel];
   }
 
   function loadCategories(){ return CATEGORIES; }
@@ -413,7 +428,9 @@ const SG = (() => {
     getCart, setCart, getWishlist, setWishlist, addToCart, removeFromCart, updateCartQty,
     toggleWishlist, findProduct, productCard, ratingStars, quickView, addToCompare, ripple,
     trackRecentlyViewed, toast, acceptCookies, store, updateCounts, getCurrentUser, isLoggedIn,
-    login, loginWithGoogle, logout, getCategories, loadCategories, getImageUrl,
+    login, loginWithGoogle, logout, getCategories, getSubCategories, getCategoryOptions, loadCategories, getImageUrl,
+  };
+
   window.SG = API;
   globalThis.SG = API;
   return API;

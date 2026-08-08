@@ -10,7 +10,9 @@ const { formidable } = require("formidable");
 const ROOT = __dirname;
 const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(ROOT, "assets", "data");
-const UPLOAD_DIR = path.join(ROOT, "assets", "images", "uploads");
+const DEFAULT_UPLOAD_DIR = path.join(ROOT, "assets", "images", "uploads");
+const UPLOAD_DIR = process.env.UPLOAD_DIR ? path.resolve(process.env.UPLOAD_DIR) : DEFAULT_UPLOAD_DIR;
+const STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || "product-images";
 const EVENT_CLIENTS = new Set();
 
 let supabase = null;
@@ -127,21 +129,67 @@ function resolveUploadedFile(files) {
 }
 
 function resolveUploadPath(requestedPath) {
-  const normalized = path.normalize(requestedPath);
-  const candidate = path.resolve(ROOT, '.' + normalized);
-  if (candidate.startsWith(UPLOAD_DIR) && fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
-    return candidate;
+  const raw = String(requestedPath || '').replace(/\\/g, '/');
+  const normalized = raw.replace(/^\.?(?:\/|\\)+/, '');
+
+  const candidateFromRoot = path.resolve(ROOT, normalized);
+  if (normalized.startsWith('assets/images/uploads/')) {
+    const basename = path.basename(normalized);
+    const uploadMatch = path.join(UPLOAD_DIR, basename);
+    if (fs.existsSync(uploadMatch) && fs.statSync(uploadMatch).isFile()) {
+      return uploadMatch;
+    }
   }
 
-  if (candidate.startsWith(UPLOAD_DIR)) {
-    const basename = path.basename(candidate, path.extname(candidate));
+  if (candidateFromRoot.startsWith(UPLOAD_DIR) && fs.existsSync(candidateFromRoot) && fs.statSync(candidateFromRoot).isFile()) {
+    return candidateFromRoot;
+  }
+
+  if (candidateFromRoot.startsWith(ROOT) && fs.existsSync(candidateFromRoot) && fs.statSync(candidateFromRoot).isFile()) {
+    return candidateFromRoot;
+  }
+
+  if (candidateFromRoot.startsWith(UPLOAD_DIR)) {
+    const basename = path.basename(candidateFromRoot, path.extname(candidateFromRoot));
     for (const ext of IMAGE_EXTENSIONS) {
       const alt = path.join(UPLOAD_DIR, basename + ext);
       if (fs.existsSync(alt)) return alt;
     }
   }
 
-  return candidate;
+  return candidateFromRoot;
+}
+
+const FORBIDDEN_PUBLIC_FILES = new Set([
+  '.env', '.env.local', '.env.development', '.env.production',
+  '.git', 'server.js', 'package.json', 'package-lock.json',
+  'convert.js', 'convert-customers.js', 'convert-products.js'
+]);
+
+function isSafePublicPath(filePath) {
+  if (!filePath || typeof filePath !== 'string') return false;
+
+  const resolved = path.resolve(filePath);
+  const relative = path.relative(ROOT, resolved);
+  if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) return false;
+
+  const segments = relative.split(path.sep).filter(Boolean);
+  if (segments.length === 0 || segments.some(segment => segment === '..' || segment.startsWith('.'))) return false;
+
+  const basename = path.basename(resolved);
+  if (FORBIDDEN_PUBLIC_FILES.has(basename)) return false;
+
+  const first = segments[0];
+  if (first === 'assets' || first === 'pages' || first === 'admin') return true;
+  if (segments.length === 1 && basename.endsWith('.html')) return true;
+  return false;
+}
+
+function isSafeRequestPath(rawPath) {
+  const value = String(rawPath || '');
+  if (!value || value.includes('..') || value.includes('\\..')) return false;
+  const basename = path.basename(value);
+  return !basename.startsWith('.');
 }
 
 function ensureDataDir() {
@@ -220,6 +268,55 @@ function saveResource(resource, value) {
   return value;
 }
 
+async function ensureSupabaseStorageBucket(bucketName) {
+  if (!supabase) return false;
+
+  try {
+    const { error } = await supabase.storage.createBucket(bucketName, {
+      public: true,
+      fileSizeLimit: '5MB'
+    });
+
+    if (!error) return true;
+    const msg = String(error.message || '').toLowerCase();
+    if (msg.includes('already exists') || msg.includes('duplicate') || error.status === 409 || error.status === 400) {
+      return true;
+    }
+    console.warn(`[supabase] storage bucket ${bucketName} unavailable:`, error.message || error);
+    return false;
+  } catch (error) {
+    console.warn(`[supabase] could not ensure storage bucket ${bucketName}:`, error.message || error);
+    return false;
+  }
+}
+
+async function uploadToSupabaseStorage(filePath, originalName) {
+  if (!supabase) return null;
+
+  const bucketName = STORAGE_BUCKET;
+  const bucketReady = await ensureSupabaseStorageBucket(bucketName);
+  if (!bucketReady) return null;
+
+  try {
+    const ext = path.extname(String(originalName || filePath) || '.jpg').toLowerCase() || '.jpg';
+    const safeName = `uploads/${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+    const fileBuffer = fs.readFileSync(filePath);
+    const mimeType = contentType(filePath) || 'application/octet-stream';
+
+    const { data, error } = await supabase.storage.from(bucketName).upload(safeName, fileBuffer, {
+      contentType: mimeType,
+      upsert: true
+    });
+
+    if (error) throw error;
+    const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(data.path);
+    return publicData?.publicUrl || null;
+  } catch (error) {
+    console.warn(`[supabase] upload failed for ${filePath}:`, error.message || error);
+    return null;
+  }
+}
+
 function normalizeCategoryForDb(category) {
   if (!category || typeof category !== "object") return category;
   return {
@@ -235,6 +332,8 @@ function normalizeCategoryForDb(category) {
     keywords: category.keywords ?? null,
     active: category.active !== false,
     featured: !!category.featured,
+    parent: category.parent ?? null,
+    sub_categories: Array.isArray(category.subCategories) ? category.subCategories : [],
     created_at: category.created ?? new Date().toISOString().slice(0, 10)
   };
 }
@@ -254,6 +353,8 @@ function normalizeCategoryFromDb(row) {
     keywords: row.keywords || "",
     active: row.active !== false,
     featured: !!row.featured,
+    parent: row.parent || "",
+    subCategories: Array.isArray(row.sub_categories) ? row.sub_categories : (Array.isArray(row.subCategories) ? row.subCategories : []),
     created: row.created_at || row.created || new Date().toISOString().slice(0, 10)
   };
 }
@@ -421,6 +522,11 @@ async function saveToSupabase(resource, value) {
 }
 
 http.createServer(async (req, res) => {
+  const rawRequestPath = decodeURIComponent(String(req.url || '/'));
+  if (rawRequestPath.includes('..')) {
+    return sendJson(res, 404, { error: 'Not Found' });
+  }
+
   const url = new URL(req.url, `http://${req.headers.host}`);
 
   if (url.pathname === "/api/events") {
@@ -475,8 +581,14 @@ http.createServer(async (req, res) => {
         }
       }
 
-      const relativePath = `/assets/images/uploads/${path.basename(finalPath)}`;
-      return sendJson(res, 200, { url: relativePath, name: fileInfo.uploaded.originalFilename || path.basename(finalPath) });
+      const localRelativePath = `/assets/images/uploads/${path.basename(finalPath)}`;
+      uploadToSupabaseStorage(finalPath, originalName).then(publicUrl => {
+        const responseUrl = publicUrl || localRelativePath;
+        return sendJson(res, 200, { url: responseUrl, name: fileInfo.uploaded.originalFilename || path.basename(finalPath) });
+      }).catch(() => {
+        return sendJson(res, 200, { url: localRelativePath, name: fileInfo.uploaded.originalFilename || path.basename(finalPath) });
+      });
+      return;
     });
     return;
   }
@@ -528,9 +640,13 @@ http.createServer(async (req, res) => {
   }
 
   const requested = decodeURIComponent(url.pathname === "/" ? "/index.html" : url.pathname);
-  const filePath = resolveUploadPath(`.${requested}`);
+  if (!isSafeRequestPath(requested)) {
+    return sendJson(res, 404, { error: "Not Found" });
+  }
 
-  if (!filePath.startsWith(ROOT) || !fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+  const filePath = resolveUploadPath(requested);
+
+  if (!isSafePublicPath(filePath) || !fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
     return sendJson(res, 404, { error: "Not Found" });
   }
 
