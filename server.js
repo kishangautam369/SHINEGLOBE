@@ -64,6 +64,36 @@ function notify(resource) {
   EVENT_CLIENTS.forEach(client => client.write(message));
 }
 
+const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg'];
+
+function detectContentType(filePath) {
+  try {
+    const fd = fs.openSync(filePath, 'r');
+    const buffer = Buffer.alloc(12);
+    fs.readSync(fd, buffer, 0, 12, 0);
+    fs.closeSync(fd);
+
+    if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) {
+      return 'image/png';
+    }
+    if (buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[buffer.length - 2] === 0xFF && buffer[buffer.length - 1] === 0xD9) {
+      return 'image/jpeg';
+    }
+    if (buffer.slice(0, 4).toString() === 'RIFF' && buffer.slice(8, 12).toString() === 'WEBP') {
+      return 'image/webp';
+    }
+    if (buffer.slice(0, 6).toString() === 'GIF87a' || buffer.slice(0, 6).toString() === 'GIF89a') {
+      return 'image/gif';
+    }
+    if (buffer.slice(0, 5).toString() === '<?xml' || buffer.slice(0, 4).toString() === '<svg') {
+      return 'image/svg+xml';
+    }
+  } catch (error) {
+    return null;
+  }
+  return null;
+}
+
 function contentType(file) {
   const map = {
     ".html": "text/html; charset=utf-8",
@@ -73,9 +103,45 @@ function contentType(file) {
     ".png": "image/png",
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",
-    ".svg": "image/svg+xml"
+    ".webp": "image/webp",
+    ".svg": "image/svg+xml",
+    ".gif": "image/gif"
   };
-  return map[path.extname(file)] || "application/octet-stream";
+  const ext = path.extname(file).toLowerCase();
+  return map[ext] || (fs.existsSync(file) ? detectContentType(file) : null) || "application/octet-stream";
+}
+
+function resolveUploadedFile(files) {
+  if (!files || typeof files !== 'object') return null;
+  const resolve = (value) => {
+    if (!value) return null;
+    return Array.isArray(value) ? value[0] : value;
+  };
+
+  const uploaded = resolve(files.image) || resolve(files.file) || resolve(files.upload) || resolve(Object.values(files)[0]);
+  if (!uploaded || typeof uploaded !== 'object') return null;
+
+  const filepath = uploaded.filepath || uploaded.filePath || uploaded.path || uploaded.file || (uploaded.toJSON ? uploaded.toJSON().filepath : null);
+  const filename = path.basename(filepath || String(uploaded.newFilename || uploaded.originalFilename || 'image.jpg'));
+  return { uploaded, filepath, filename };
+}
+
+function resolveUploadPath(requestedPath) {
+  const normalized = path.normalize(requestedPath);
+  const candidate = path.resolve(ROOT, '.' + normalized);
+  if (candidate.startsWith(UPLOAD_DIR) && fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+    return candidate;
+  }
+
+  if (candidate.startsWith(UPLOAD_DIR)) {
+    const basename = path.basename(candidate, path.extname(candidate));
+    for (const ext of IMAGE_EXTENSIONS) {
+      const alt = path.join(UPLOAD_DIR, basename + ext);
+      if (fs.existsSync(alt)) return alt;
+    }
+  }
+
+  return candidate;
 }
 
 function ensureDataDir() {
@@ -377,21 +443,40 @@ http.createServer(async (req, res) => {
       uploadDir: UPLOAD_DIR,
       keepExtensions: true,
       maxFileSize: 5 * 1024 * 1024,
-      filename: (_, originalName) => {
-        const ext = path.extname(originalName || "image.jpg");
-        return `img-${Date.now()}-${Math.round(Math.random() * 1000)}${ext}`;
+      filename: (name, ext, part) => {
+        const extension = ext || path.extname(String(part?.originalFilename || name || "image.jpg")) || ".jpg";
+        return `img-${Date.now()}-${Math.round(Math.random() * 1000)}${extension}`;
       }
     });
 
     form.parse(req, (error, fields, files) => {
       if (error) return sendJson(res, 500, { error: error.message });
-      const file = files.image || files.file || files.upload;
-      if (!file || !Array.isArray(file) && !file.filepath) {
+      const fileInfo = resolveUploadedFile(files);
+      let filepath = fileInfo?.filepath;
+      if (!filepath && fileInfo?.filename) {
+        const candidate = path.join(UPLOAD_DIR, fileInfo.filename);
+        if (fs.existsSync(candidate)) filepath = candidate;
+      }
+      if (!fileInfo || !filepath || !fs.existsSync(filepath)) {
         return sendJson(res, 400, { error: "No image file provided." });
       }
-      const uploaded = Array.isArray(file) ? file[0] : file;
-      const relativePath = `/assets/images/uploads/${path.basename(uploaded.filepath)}`;
-      return sendJson(res, 200, { url: relativePath, name: uploaded.originalFilename || path.basename(uploaded.filepath) });
+
+      const originalName = String(fileInfo.uploaded.originalFilename || fileInfo.filename || 'image.jpg');
+      const desiredExt = path.extname(originalName).toLowerCase() || path.extname(filepath).toLowerCase();
+      let finalPath = filepath;
+      if (!path.extname(finalPath) && desiredExt) {
+        const targetPath = `${filepath}${desiredExt}`;
+        try {
+          fs.renameSync(filepath, targetPath);
+          finalPath = targetPath;
+          filepath = targetPath;
+        } catch (err) {
+          // keep original filepath if rename fails
+        }
+      }
+
+      const relativePath = `/assets/images/uploads/${path.basename(finalPath)}`;
+      return sendJson(res, 200, { url: relativePath, name: fileInfo.uploaded.originalFilename || path.basename(finalPath) });
     });
     return;
   }
@@ -443,7 +528,7 @@ http.createServer(async (req, res) => {
   }
 
   const requested = decodeURIComponent(url.pathname === "/" ? "/index.html" : url.pathname);
-  const filePath = path.resolve(ROOT, `.${requested}`);
+  const filePath = resolveUploadPath(`.${requested}`);
 
   if (!filePath.startsWith(ROOT) || !fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
     return sendJson(res, 404, { error: "Not Found" });

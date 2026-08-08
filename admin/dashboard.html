@@ -116,7 +116,7 @@ function renderDashboard(){
   const top = [...products].sort((a,b)=>b.reviews-a.reviews).slice(0,5);
   document.getElementById('topProducts').innerHTML = top.map(p => `
     <div class="d-flex align-items-center gap-2 mb-3">
-      <img src="${p.image}" class="row-thumb">
+      <img src="${p.image || 'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600'}" class="row-thumb" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600'">
       <div class="flex-grow-1"><div class="small fw-semibold">${p.name}</div><div class="text-muted" style="font-size:.75rem;">${p.reviews} reviews</div></div>
       <div class="fw-bold small">₹${(Number(p.price)||0).toFixed(2)}</div>
     </div>`).join('');

@@ -6,8 +6,15 @@
 const SG = (() => {
 
   const API_BASE = '/api';
+  const DEFAULT_PRODUCT_IMAGE = 'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600';
   let PRODUCTS = [];
   let CATEGORIES = [];
+
+  function getImageUrl(product) {
+    if (!product) return DEFAULT_PRODUCT_IMAGE;
+    const src = typeof product === 'string' ? product : product.image || product.imageUrl || (Array.isArray(product.images) ? product.images[0] : undefined);
+    return String(src || DEFAULT_PRODUCT_IMAGE).trim() || DEFAULT_PRODUCT_IMAGE;
+  }
 
   /* ---------------- Storage helpers ---------------- */
   const store = {
@@ -199,6 +206,7 @@ const SG = (() => {
 
   function productCard(p, basePath = ''){
     const wl = getWishlist().includes(p.id);
+    const imageSrc = getImageUrl(p);
     const discount = p.oldPrice ? Math.round(100 - (p.price / p.oldPrice * 100)) : 0;
     return `
     <div class="product-card" data-aos="fade-up">
@@ -209,7 +217,7 @@ const SG = (() => {
         <button class="pa-btn" onclick="SG.addToCompare(${p.id})" aria-label="Compare" title="Compare"><i class="fa-solid fa-code-compare"></i></button>
       </div>
       <a href="${basePath}product.html?id=${p.id}" class="product-img-wrap d-block">
-        <img src="${p.image}" alt="${p.name}" loading="lazy">
+        <img src="${imageSrc}" alt="${p.name}" loading="lazy" onerror="this.onerror=null;this.src='${DEFAULT_PRODUCT_IMAGE}'">
       </a>
       <div class="product-info">
         <div class="product-cat">${p.category}</div>
@@ -246,7 +254,8 @@ const SG = (() => {
     const basePath = location.pathname.includes('/pages/') ? '' : 'pages/';
     const modalEl = document.getElementById('quickViewModal');
     if(!modalEl) return;
-    modalEl.querySelector('.qv-image').src = p.image;
+    modalEl.querySelector('.qv-image').src = getImageUrl(p);
+    modalEl.querySelector('.qv-image').onerror = function(){ this.onerror=null; this.src='${DEFAULT_PRODUCT_IMAGE}'; };
     modalEl.querySelector('.qv-name').textContent = p.name;
     modalEl.querySelector('.qv-cat').textContent = p.category;
     modalEl.querySelector('.qv-price').textContent = '₹' + p.price.toFixed(2);
@@ -320,7 +329,7 @@ const SG = (() => {
         if(q.length < 1){ box.innerHTML=''; box.style.display='none'; return; }
         const matches = PRODUCTS.filter(p => p.name.toLowerCase().includes(q)).slice(0,5);
         box.innerHTML = matches.map(p => `<a href="${location.pathname.includes('/pages/')?'':'pages/'}product.html?id=${p.id}" class="d-flex align-items-center gap-2 p-2 border-bottom text-decoration-none text-dark">
-          <img src="${p.image}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;"><span class="small">${p.name}</span></a>`).join('') || '<div class="p-2 small text-muted">No products found</div>';
+          <img src="${getImageUrl(p)}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;" onerror="this.onerror=null;this.src='${DEFAULT_PRODUCT_IMAGE}'"><span class="small">${p.name}</span></a>`).join('') || '<div class="p-2 small text-muted">No products found</div>';
         box.style.display = 'block';
       });
       document.addEventListener('click', (e) => { if(box && !box.contains(e.target) && e.target !== input) box.style.display = 'none'; });
@@ -404,11 +413,7 @@ const SG = (() => {
     getCart, setCart, getWishlist, setWishlist, addToCart, removeFromCart, updateCartQty,
     toggleWishlist, findProduct, productCard, ratingStars, quickView, addToCompare, ripple,
     trackRecentlyViewed, toast, acceptCookies, store, updateCounts, getCurrentUser, isLoggedIn,
-    login, loginWithGoogle, logout, getCategories, loadCategories,
-    get products(){ return PRODUCTS; }, loadProducts,
-    syncUserToServer
-  };
-
+    login, loginWithGoogle, logout, getCategories, loadCategories, getImageUrl,
   window.SG = API;
   globalThis.SG = API;
   return API;

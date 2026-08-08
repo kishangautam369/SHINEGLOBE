@@ -156,7 +156,7 @@ function render(){
   document.getElementById('productTableBody').innerHTML = items.length ? items.map(p => `
     <tr>
       <td><input type="checkbox" class="row-check" data-id="${p.id}" onchange="toggleBulkBtn()"></td>
-      <td><img src="${p.image}" class="row-thumb"></td>
+      <td><img src="${p.image || 'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600'}" class="row-thumb" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600'"></td>
       <td class="fw-semibold">${p.name}</td>
       <td class="text-muted small">SG-${String(p.id).padStart(5,'0')}</td>
       <td>${p.category}</td>

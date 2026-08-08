@@ -35,7 +35,7 @@ function renderCategoryPage(products){
     const sample = products.find(p => p.category === c.name);
     return `<div class="col-6 col-md-3" data-aos="fade-up">
       <a href="shop.html?cat=${encodeURIComponent(c.name)}" class="product-card d-block text-decoration-none text-dark">
-        <div class="product-img-wrap"><img src="${sample?.image || 'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600'}" alt="${c.name}"></div>
+        <div class="product-img-wrap"><img src="${SG.getImageUrl(sample)}" alt="${c.name}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600'"></div>
         <div class="product-info text-center">
           <div class="cat-icon mx-auto mb-2" style="width:46px;height:46px;font-size:1.1rem;"><i class="fa-solid ${c.icon || ICONS[c.name] || 'fa-tag'}"></i></div>
           <div class="fw-semibold">${c.name}</div>

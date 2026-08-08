@@ -137,8 +137,11 @@ document.addEventListener('sg:productsReady', (e) => {
   document.getElementById('pageTitle').textContent = p.name + ' — Shine Globe';
   document.getElementById('bcCat').textContent = p.category;
   document.getElementById('bcName').textContent = p.name;
-  document.getElementById('mainImage').src = p.image;
-  document.getElementById('thumbRow').innerHTML = [p.image,p.image,p.image].map((img,i)=>`<img src="${img}" class="thumb-img ${i===0?'active':''}" onclick="document.getElementById('mainImage').src=this.src; document.querySelectorAll('.thumb-img').forEach(t=>t.classList.remove('active')); this.classList.add('active');">`).join('');
+  const mainImage = document.getElementById('mainImage');
+  const imageUrl = SG.getImageUrl(p);
+  mainImage.src = imageUrl;
+  mainImage.onerror = function(){ this.onerror=null; this.src='https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600'; };
+  document.getElementById('thumbRow').innerHTML = [imageUrl, imageUrl, imageUrl].map((img,i)=>`<img src="${img}" class="thumb-img ${i===0?'active':''}" onclick="document.getElementById('mainImage').src=this.src; document.querySelectorAll('.thumb-img').forEach(t=>t.classList.remove('active')); this.classList.add('active');">`).join('');
   document.getElementById('pCat').textContent = p.category;
   document.getElementById('pName').textContent = p.name;
   document.getElementById('pRating').innerHTML = SG.ratingStars(p.rating);
