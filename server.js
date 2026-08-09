@@ -374,10 +374,13 @@ function normalizeSettingsForDb(settings) {
 
 function normalizeProductForDb(product) {
   if (!product || typeof product !== "object") return product;
+  const categoryName = product.category ?? "";
+  const subcategoryName = product.subcategory ?? product.subCategory ?? product.sub_category ?? "";
   return {
     id: product.id,
     name: product.name ?? "",
-    category: product.category ?? "",
+    category: categoryName,
+    subcategory: subcategoryName,
     brand: product.brand ?? "",
     price: Number(product.price ?? 0),
     rating: Number(product.rating ?? 4.5),
@@ -396,6 +399,7 @@ function normalizeProductFromDb(row) {
     id: row.id,
     name: row.name,
     category: row.category,
+    subcategory: row.subcategory ?? row.subCategory ?? row.sub_category ?? "",
     brand: row.brand,
     price: Number(row.price ?? 0),
     oldPrice: row.oldPrice ?? null,

@@ -65,6 +65,7 @@
               </button>
             </div>
           </div>
+            <div class="col-md-6"><label class="form-label small fw-semibold">Subcategory</label><select class="form-select" id="pf_subcategory"><option value="">No subcategory</option></select></div>
             <div class="col-md-6"><label class="form-label small fw-semibold">Brand</label><input class="form-control" id="pf_brand"></div>
             <div class="col-md-4"><label class="form-label small fw-semibold">Price (₹)</label><input required type="number" step="0.01" class="form-control" id="pf_price"></div>
             <div class="col-md-4"><label class="form-label small fw-semibold">Old Price (₹)</label><input type="number" step="0.01" class="form-control" id="pf_oldprice"></div>
@@ -90,6 +91,28 @@
 ADMIN.initLayout('products.html', 'Products');
 let allProducts = [], page = 1, perPage = 8, currentFilters = {}, categoryOptions = [];
 
+function getCategorySubOptions(categoryName){
+  const storedCats = ADMIN.store('admin_categories', []) || [];
+  if(!categoryName) return [];
+  const parentCategory = storedCats.find(item => item && typeof item === 'object' && item.name === categoryName && !item.parent);
+  if(parentCategory && Array.isArray(parentCategory.subCategories) && parentCategory.subCategories.length) {
+    return parentCategory.subCategories.map(sub => (typeof sub === 'string' ? sub : (sub.name || ''))).filter(Boolean);
+  }
+  return storedCats.filter(item => item && typeof item === 'object' && item.parent === categoryName).map(item => item.name).filter(Boolean);
+}
+
+function updateProductSubcategoryOptions(){
+  const categoryName = document.getElementById('pf_category').value;
+  const subSelect = document.getElementById('pf_subcategory');
+  const currentValue = subSelect.dataset.current || '';
+  const options = ['<option value="">No subcategory</option>'];
+  const available = getCategorySubOptions(categoryName);
+  available.forEach(sub => options.push(`<option value="${sub}">${sub}</option>`));
+  subSelect.innerHTML = options.join('');
+  subSelect.value = available.includes(currentValue) ? currentValue : '';
+  subSelect.dataset.current = subSelect.value;
+}
+
 document.addEventListener('admin:dataReady', () => {
   allProducts = ADMIN.store('admin_products', []);
   const storedCats = ADMIN.store('admin_categories', []) || [];
@@ -101,12 +124,13 @@ document.addEventListener('admin:dataReady', () => {
   document.getElementById('prodCatFilter').innerHTML += categoryOptions.map(c=>`<option value="${c.name}">${c.label}</option>`).join('');
   document.getElementById('pf_category').innerHTML = ['<option value="">Select category</option>', ...categoryOptions.map(c=>`<option value="${c.name}">${c.label}</option>`)].join('');
   updateCategoryLinkButton();
+  updateProductSubcategoryOptions();
   render();
 
   document.getElementById('prodSearch').addEventListener('input', () => { page=1; render(); });
   document.getElementById('prodCatFilter').addEventListener('change', () => { page=1; render(); });
   document.getElementById('prodStatusFilter').addEventListener('change', () => { page=1; render(); });
-  document.getElementById('pf_category').addEventListener('change', updateCategoryLinkButton);
+  document.getElementById('pf_category').addEventListener('change', () => { updateCategoryLinkButton(); updateProductSubcategoryOptions(); });
   document.getElementById('selectAll').addEventListener('change', function(){
     document.querySelectorAll('.row-check').forEach(cb => cb.checked = this.checked);
     toggleBulkBtn();
@@ -161,7 +185,7 @@ function render(){
       <td><img src="${p.image || 'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600'}" class="row-thumb" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600'"></td>
       <td class="fw-semibold">${p.name}</td>
       <td class="text-muted small">SG-${String(p.id).padStart(5,'0')}</td>
-      <td>${p.category}</td>
+      <td>${p.category}${p.subcategory ? `<div class="text-muted small">${p.subcategory}</div>` : ''}</td>
       <td>₹${p.price.toFixed(2)}</td>
       <td>${p.stock}</td>
       <td><span class="status-pill ${p.active===false?'status-neutral':'status-success'}">${p.active===false?'Disabled':'Active'}</span></td>
@@ -179,6 +203,16 @@ function render(){
   document.getElementById('prodPagination').innerHTML = pages;
 }
 
+function resetProductImageInput(){
+  const input = document.getElementById('pf_image_file');
+  if (input) {
+    input.value = '';
+    if (input.files) {
+      try { input.files = null; } catch (error) { /* no-op */ }
+    }
+  }
+}
+
 function openProductModal(id){
   // Find product — undefined = Add mode, number = Edit mode
   const p = (id !== undefined) ? allProducts.find(x => x.id === Number(id)) : null;
@@ -189,6 +223,9 @@ function openProductModal(id){
   document.getElementById('pf_name').value     = p ? p.name : '';
   document.getElementById('pf_sku').value      = p ? 'SG-' + String(p.id).padStart(5,'0') : '';
   document.getElementById('pf_category').value = p ? p.category : '';
+  document.getElementById('pf_subcategory').dataset.current = p ? (p.subcategory || '') : '';
+  updateProductSubcategoryOptions();
+  document.getElementById('pf_subcategory').value = p ? (p.subcategory || '') : '';
   document.getElementById('pf_brand').value    = p ? (p.brand || '') : '';
   document.getElementById('pf_price').value    = p ? p.price : '';
   document.getElementById('pf_oldprice').value = p ? (p.oldPrice || '') : '';
@@ -197,6 +234,7 @@ function openProductModal(id){
   document.getElementById('pf_badge').value    = p ? (p.badge || '') : '';
   document.getElementById('pf_desc').value     = p ? (p.desc || '') : '';
   document.getElementById('pf_active').checked = p ? p.active !== false : true;
+  resetProductImageInput();
 
   // Always dispose old instance first to avoid stale state crashes
   const modalEl = document.getElementById('productModal');
@@ -211,18 +249,27 @@ async function uploadProductImage(){
   if(!file) return null;
   const formData = new FormData();
   formData.append('image', file);
-  const res = await fetch('../api/upload-image', { method:'POST', body: formData });
-  if(!res.ok) throw new Error('Image upload failed');
-  const result = await res.json();
-  return result.url;
+  try {
+    const res = await fetch('../api/upload-image', { method:'POST', body: formData });
+    if(!res.ok) throw new Error('Image upload failed');
+    const result = await res.json();
+    resetProductImageInput();
+    return result.url;
+  } catch (error) {
+    resetProductImageInput();
+    throw error;
+  }
 }
 
 async function saveProduct(){
   const id = document.getElementById('pf_id').value;
+  const imageInput = document.getElementById('pf_image_file');
   let imageUrl = document.getElementById('pf_image').value.trim();
   try {
-    const uploaded = await uploadProductImage();
-    if(uploaded) imageUrl = uploaded;
+    if (imageInput && imageInput.files && imageInput.files.length) {
+      const uploaded = await uploadProductImage();
+      if(uploaded) imageUrl = uploaded;
+    }
   } catch (error) {
     console.error(error);
     alert('Image upload failed. You can still save the product using a URL.');
@@ -230,6 +277,7 @@ async function saveProduct(){
   const data = {
     name: document.getElementById('pf_name').value,
     category: document.getElementById('pf_category').value,
+    subcategory: document.getElementById('pf_subcategory').value || '',
     brand: document.getElementById('pf_brand').value,
     price: parseFloat(document.getElementById('pf_price').value) || 0,
     oldPrice: parseFloat(document.getElementById('pf_oldprice').value) || null,
@@ -260,6 +308,7 @@ async function saveProduct(){
   const modalEl = document.getElementById('productModal');
   const m = bootstrap.Modal.getInstance(modalEl);
   if (m) m.hide();
+  resetProductImageInput();
   render();
 }
 

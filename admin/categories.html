@@ -305,6 +305,17 @@ function refreshParentCategoryOptions(){
   parentSelect.innerHTML = ['<option value="">None (top-level category)</option>', ...topLevelCats.map(c => `<option value="${c.name}">${c.name}</option>`)].join('');
 }
 
+function syncParentSubCategories(parentName, previousName, nextName){
+  const parent = allCats.find(category => category.name === parentName && !category.parent);
+  if(!parent) return;
+  const names = Array.isArray(parent.subCategories) ? parent.subCategories
+    .map(item => typeof item === 'string' ? item : item?.name)
+    .filter(Boolean) : [];
+  const withoutPrevious = names.filter(name => name !== previousName);
+  if(nextName && !withoutPrevious.includes(nextName)) withoutPrevious.push(nextName);
+  parent.subCategories = withoutPrevious;
+}
+
 document.addEventListener('admin:dataReady', () => {
   allCats = ADMIN.store('admin_categories', null);
   if(!allCats){ allCats = DEFAULT_CATS; ADMIN.setStore('admin_categories', allCats); }
@@ -558,6 +569,9 @@ async function saveCat(){
     if(!parentCategory){ toast('Please choose a valid parent category.','error'); return; }
     const existingChild = allCats.find(c => c.parent === parentName && c.name === baseName && (!id || c.id !== Number(id)));
     if(existingChild){ toast('This subcategory already exists under that parent.','error'); return; }
+    const previous = id ? allCats.find(c => c.id === Number(id)) : null;
+    if(previous?.parent && previous.parent !== parentName) syncParentSubCategories(previous.parent, previous.name, '');
+    syncParentSubCategories(parentName, previous?.name || '', baseName);
     if(id){
       const idx = allCats.findIndex(c=>c.id===Number(id));
       allCats[idx] = { ...allCats[idx], ...data };
@@ -611,6 +625,8 @@ function confirmDelete(id){
 }
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+    const category = allCats.find(c => c.id === pendingDeleteId);
+    if(category?.parent) syncParentSubCategories(category.parent, category.name, '');
     allCats = allCats.filter(c=>c.id!==pendingDeleteId);
     try { allCats = await ADMIN.saveCollection('categories', allCats); }
     catch(error) { console.error(error); toast('Category was not deleted from the shared server.','error'); return; }

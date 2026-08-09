@@ -13,7 +13,16 @@
     "active": true,
     "featured": false,
     "parent": "",
-    "subCategories": [],
+    "subCategories": [
+      "Plates",
+      "Glasses",
+      "Cups",
+      "Bowls",
+      "Spoons",
+      "Containers",
+      "Trays",
+      "Other disposable products"
+    ],
     "created": "2026-08-01T00:00:00"
   },
   {

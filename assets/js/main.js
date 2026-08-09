@@ -9,6 +9,8 @@ const SG = (() => {
   const DEFAULT_PRODUCT_IMAGE = 'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600';
   let PRODUCTS = [];
   let CATEGORIES = [];
+  let catalogRequest = null;
+  let searchInitialized = false;
 
   function getImageUrl(product) {
     if (!product) return DEFAULT_PRODUCT_IMAGE;
@@ -151,8 +153,49 @@ const SG = (() => {
     setTimeout(()=> el.remove(), 3500);
   }
 
+  function normalizeSubCategoryEntry(categoryName, item, index){
+    if (!item) return null;
+    if (typeof item === 'string') {
+      const name = item.trim();
+      if (!name) return null;
+      return { id: `${categoryName}-${index}-${name}`, name, parent: categoryName, active: true, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') };
+    }
+    const name = String(item.name || item.title || '').trim();
+    if (!name) return null;
+    return {
+      ...item,
+      id: item.id ?? `${categoryName}-${index}-${name}`,
+      name,
+      parent: item.parent || categoryName,
+      slug: item.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+      active: item.active !== false
+    };
+  }
+
+  function normalizeCatalogCategories(list){
+    return (Array.isArray(list) ? list : []).map((category, idx) => {
+      if (!category || typeof category !== 'object') return null;
+      const name = String(category.name || category.title || '').trim();
+      if (!name) return null;
+      const normalizedSubCats = Array.isArray(category.subCategories)
+        ? category.subCategories.map((item, subIdx) => normalizeSubCategoryEntry(name, item, subIdx)).filter(Boolean)
+        : [];
+      return {
+        ...category,
+        id: category.id ?? idx + 1,
+        name,
+        slug: category.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+        parent: category.parent || '',
+        subCategories: normalizedSubCats,
+        active: category.active !== false,
+        featured: !!category.featured,
+        created: category.created || new Date().toISOString().split('T')[0]
+      };
+    }).filter(Boolean);
+  }
+
   function getCategories(){
-    const categories = CATEGORIES.length ? CATEGORIES : (() => {
+    const categories = normalizeCatalogCategories(CATEGORIES.length ? CATEGORIES : (() => {
       const names = [...new Set(PRODUCTS.map(p => p.category).filter(Boolean))];
       return names.map((name, index) => ({
         id: index + 1,
@@ -162,26 +205,46 @@ const SG = (() => {
         color: '#2563EB',
         active: true,
         featured: false,
-        created: new Date().toISOString().split('T')[0]
+        created: new Date().toISOString().split('T')[0],
+        subCategories: []
       }));
-    })();
+    })());
     return categories.filter(c => c.active !== false && !c.parent);
   }
 
   function getSubCategories(parentName){
     const parentValue = String(parentName || '').trim();
     if(!parentValue) return [];
-    return (CATEGORIES.length ? CATEGORIES : []).filter(c => c.active !== false && c.parent === parentValue);
+    const list = [];
+    const categories = normalizeCatalogCategories(CATEGORIES.length ? CATEGORIES : []);
+    categories.forEach(cat => {
+      if (cat.parent === parentValue) {
+        list.push({ ...cat, parent: cat.parent || parentValue });
+        return;
+      }
+      if (cat.name === parentValue) {
+        const nested = Array.isArray(cat.subCategories) ? cat.subCategories : [];
+        nested.forEach(sub => {
+          if (sub && typeof sub === 'object') list.push({ ...sub, parent: sub.parent || parentValue });
+          else if (typeof sub === 'string') list.push({ id: `${cat.name}-${sub}`, name: sub.trim(), parent: parentValue, active: true });
+        });
+      }
+    });
+    return list.filter((item, index, arr) => item && item.name && arr.findIndex(candidate => candidate && candidate.name === item.name && (candidate.parent || '') === (item.parent || '')) === index);
   }
 
   function getCategoryOptions(){
-    const categories = (CATEGORIES.length ? CATEGORIES : []).filter(c => c.active !== false);
+    const categories = normalizeCatalogCategories(CATEGORIES.length ? CATEGORIES : []).filter(c => c.active !== false);
     const topLevel = categories.filter(c => !c.parent).map(c => ({ name: c.name, parent: null, label: c.name }));
-    const subLevel = categories.filter(c => c.parent).map(c => ({ name: c.name, parent: c.parent, label: `${c.parent} / ${c.name}` }));
+    const subLevel = categories.flatMap(c => (Array.isArray(c.subCategories) ? c.subCategories : []).map(sub => ({
+      name: typeof sub === 'string' ? sub : sub.name,
+      parent: c.name,
+      label: `${c.name} / ${typeof sub === 'string' ? sub : sub.name}`
+    })));
     return [...topLevel, ...subLevel];
   }
 
-  function loadCategories(){ return CATEGORIES; }
+  function loadCategories(){ return normalizeCatalogCategories(CATEGORIES); }
 
   /* ---------------- Cart / Wishlist actions ---------------- */
   function addToCart(id, qty = 1){
@@ -336,6 +399,9 @@ const SG = (() => {
 
   /* ---------------- Search suggestions ---------------- */
   function initSearch(){
+    if(searchInitialized) return;
+    searchInitialized = true;
+
     document.querySelectorAll('.live-search-input').forEach(input => {
       const box = input.closest('.search-bar-shine')?.querySelector('.search-suggestions') || input.parentElement.querySelector('.search-suggestions');
       input.addEventListener('input', () => {
@@ -344,7 +410,7 @@ const SG = (() => {
         if(q.length < 1){ box.innerHTML=''; box.style.display='none'; return; }
         const matches = PRODUCTS.filter(p => p.name.toLowerCase().includes(q)).slice(0,5);
         box.innerHTML = matches.map(p => `<a href="${location.pathname.includes('/pages/')?'':'pages/'}product.html?id=${p.id}" class="d-flex align-items-center gap-2 p-2 border-bottom text-decoration-none text-dark">
-          <img src="${getImageUrl(p)}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;" onerror="this.onerror=null;this.src='${DEFAULT_PRODUCT_IMAGE}'"><span class="small">${p.name}</span></a>`).join('') || '<div class="p-2 small text-muted">No products found</div>';
+          <img src="${getImageUrl(p)}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;" loading="lazy" onerror="this.onerror=null;this.src='${DEFAULT_PRODUCT_IMAGE}'"><span class="small">${p.name}</span></a>`).join('') || '<div class="p-2 small text-muted">No products found</div>';
         box.style.display = 'block';
       });
       document.addEventListener('click', (e) => { if(box && !box.contains(e.target) && e.target !== input) box.style.display = 'none'; });
@@ -371,27 +437,36 @@ const SG = (() => {
 
   /* ---------------- Load products & init ---------------- */
   async function loadProducts(force = false){
-    if(PRODUCTS.length && !force) return PRODUCTS;
+    if(PRODUCTS.length && !force && !catalogRequest) return PRODUCTS;
+    if(catalogRequest && !force) return catalogRequest;
 
-    try{
-      const [productsRes, categoriesRes] = await Promise.all([
-        fetch(`${API_BASE}/products`, { cache:'no-store' }),
-        fetch(`${API_BASE}/categories`, { cache:'no-store' })
-      ]);
-      if(!productsRes.ok || !categoriesRes.ok) throw new Error('Shared API is unavailable');
-      PRODUCTS = await productsRes.json();
-      CATEGORIES = await categoriesRes.json();
-      console.info(`[sync] Loaded ${PRODUCTS.length} products and ${CATEGORIES.length} categories from the shared API.`);
-    }catch(e){
-      console.error('[sync] Shared API unavailable. Catalog data was not loaded so stale browser data is never shown.', e.message);
-      PRODUCTS = []; CATEGORIES = [];
+    catalogRequest = (async () => {
+      try{
+        const [productsRes, categoriesRes] = await Promise.all([
+          fetch(`${API_BASE}/products`, { cache:'no-store' }),
+          fetch(`${API_BASE}/categories`, { cache:'no-store' })
+        ]);
+        if(!productsRes.ok || !categoriesRes.ok) throw new Error('Shared API is unavailable');
+        PRODUCTS = await productsRes.json();
+        CATEGORIES = normalizeCatalogCategories(await categoriesRes.json());
+        console.info(`[sync] Loaded ${PRODUCTS.length} products and ${CATEGORIES.length} categories from the shared API.`);
+      }catch(e){
+        console.error('[sync] Shared API unavailable. Catalog data was not loaded so stale browser data is never shown.', e.message);
+        PRODUCTS = []; CATEGORIES = [];
+      }
+      return PRODUCTS;
+    })();
+
+    try {
+      return await catalogRequest;
+    } finally {
+      catalogRequest = null;
     }
-    return PRODUCTS;
   }
 
   async function refreshCatalog(){
     await loadProducts(true);
-    initSearch();
+    if(searchInitialized) initSearch();
     document.dispatchEvent(new CustomEvent('sg:productsReady', { detail: PRODUCTS }));
     document.dispatchEvent(new CustomEvent('sg:categoriesReady', { detail: CATEGORIES }));
   }
@@ -429,7 +504,22 @@ const SG = (() => {
     toggleWishlist, findProduct, productCard, ratingStars, quickView, addToCompare, ripple,
     trackRecentlyViewed, toast, acceptCookies, store, updateCounts, getCurrentUser, isLoggedIn,
     login, loginWithGoogle, logout, getCategories, getSubCategories, getCategoryOptions, loadCategories, getImageUrl,
+    loadProducts, refreshCatalog, products: () => PRODUCTS, categories: () => CATEGORIES,
   };
+
+  Object.defineProperty(API, 'products', {
+    get: () => PRODUCTS,
+    enumerable: true,
+    configurable: true
+  });
+  Object.defineProperty(API, 'categories', {
+    get: () => CATEGORIES,
+    enumerable: true,
+    configurable: true
+  });
+
+  API.loadProducts = loadProducts;
+  API.refreshCatalog = refreshCatalog;
 
   window.SG = API;
   globalThis.SG = API;

@@ -47,21 +47,14 @@
         <button class="btn btn-sm border-0 fw-semibold text-dark">Categories <i class="fa-solid fa-chevron-down small"></i></button>
         <div class="mega-menu container-xl">
           <div class="row w-100">
-            <div class="col mega-col"><h6>Daily Essentials</h6>
-              <a href="${root}shop.html?cat=Disposable Products">Disposable Products</a>
-              <a href="${root}shop.html?cat=Cleaning Supplies">Cleaning Supplies</a>
-              <a href="${root}shop.html?cat=Hygiene Products">Hygiene Products</a>
-            </div>
-            <div class="col mega-col"><h6>Home &amp; Health</h6>
-              <a href="${root}shop.html?cat=Medical Supplies">Medical Supplies</a>
-              <a href="${root}shop.html?cat=Household">Household</a>
-              <a href="${root}shop.html?cat=Grocery">Grocery</a>
-            </div>
-            <div class="col mega-col"><h6>Business</h6>
-              <a href="${root}shop.html?cat=Packaging">Packaging</a>
-              <a href="${root}shop.html?cat=Office Supplies">Office Supplies</a>
-              <a href="${root}categories.html">View All Categories</a>
-            </div>
+            ${(globalThis.SG ? SG.getCategories() : []).slice(0, 9).map((category, index) => `
+              <div class="col mega-col">
+                <h6>${category.name}</h6>
+                <a href="${root}shop.html?cat=${encodeURIComponent(category.name)}">${category.name}</a>
+                ${(SG.getSubCategories ? SG.getSubCategories(category.name) : []).slice(0, 4).map(sub => `<a href="${root}shop.html?cat=${encodeURIComponent(category.name)}&sub=${encodeURIComponent(sub.name)}">${sub.name}</a>`).join('')}
+              </div>
+            `).join('')}
+            <div class="col mega-col"><h6>More</h6><a href="${root}categories.html">View All Categories</a></div>
           </div>
         </div>
       </div>
