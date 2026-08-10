@@ -475,6 +475,56 @@ async function loadFromSupabase(resource) {
   }
 }
 
+function parseMissingSupabaseColumns(error) {
+  if (!error || !error.message) return [];
+  const message = String(error.message);
+  const patterns = [
+    /column "?([a-zA-Z0-9_]+)"? does not exist/gi,
+    /Could not find the '([^']+)' column/gi
+  ];
+  const columns = new Set();
+  for (const pattern of patterns) {
+    let match;
+    while ((match = pattern.exec(message)) !== null) {
+      if (match[1]) columns.add(match[1]);
+    }
+  }
+  return [...columns];
+}
+
+function removeColumnsFromRows(rows, columns) {
+  if (!Array.isArray(rows) || columns.length === 0) return rows;
+  return rows.map(item => {
+    if (!item || typeof item !== 'object') return item;
+    const copy = { ...item };
+    for (const col of columns) delete copy[col];
+    return copy;
+  });
+}
+
+async function trySupabaseUpsert(table, rows) {
+  let payload = rows;
+  const trimmedErrors = new Set();
+
+  while (true) {
+    const { error } = await supabase.from(table).upsert(payload, { onConflict: 'id' }).select();
+    if (!error) return true;
+
+    console.warn(`[supabase] upsert failed for ${table}`, error);
+    const cols = parseMissingSupabaseColumns(error);
+    if (cols.length === 0) {
+      throw error;
+    }
+
+    const key = `${table}:${cols.sort().join(',')}`;
+    if (trimmedErrors.has(key)) {
+      throw error;
+    }
+    trimmedErrors.add(key);
+    payload = removeColumnsFromRows(payload, cols);
+  }
+}
+
 async function saveToSupabase(resource, value) {
   if (!supabase) return false;
 
@@ -489,23 +539,17 @@ async function saveToSupabase(resource, value) {
     if (resource === "products") {
       const rows = Array.isArray(value) ? value : [value];
       const normalized = rows.map(normalizeProductForDb);
-      // Delete everything first to ensure removed items are purged, then upsert current list
       const { error: deleteAllError } = await supabase.from("products").delete().neq("id", 0);
       if (deleteAllError) throw deleteAllError;
-      const { error } = await supabase.from("products").upsert(normalized, { onConflict: "id" }).select();
-      if (error) throw error;
-      return true;
+      return await trySupabaseUpsert("products", normalized);
     }
 
     if (resource === "categories") {
       const rows = Array.isArray(value) ? value : [value];
       const normalized = rows.map(normalizeCategoryForDb);
-      // Delete everything first to ensure removed items are purged, then upsert current list
       const { error: deleteAllError } = await supabase.from("categories").delete().neq("id", 0);
       if (deleteAllError) throw deleteAllError;
-      const { error } = await supabase.from("categories").upsert(normalized, { onConflict: "id" }).select();
-      if (error) throw error;
-      return true;
+      return await trySupabaseUpsert("categories", normalized);
     }
 
     const rows = Array.isArray(value) ? value : [value];
@@ -516,9 +560,7 @@ async function saveToSupabase(resource, value) {
       return copy;
     });
 
-    const { error } = await supabase.from(resource).upsert(normalized, { onConflict: "id" }).select();
-    if (error) throw error;
-    return true;
+    return await trySupabaseUpsert(resource, normalized);
   } catch (error) {
     console.warn(`[supabase] could not save ${resource}`, error.message);
     return false;
