@@ -524,7 +524,21 @@ async function saveToSupabase(resource, value) {
     return false;
   }
 }
+(async () => {
+    console.log("Testing Supabase connection...");
 
+    const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .limit(1);
+
+    if (error) {
+        console.error("Supabase Error:", error);
+    } else {
+        console.log("Supabase Connected Successfully!");
+        console.log(data);
+    }
+})();
 http.createServer(async (req, res) => {
   const rawRequestPath = decodeURIComponent(String(req.url || '/'));
   if (rawRequestPath.includes('..')) {
