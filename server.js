@@ -19,6 +19,24 @@ let supabase = null;
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+function isSupabaseAuthError(error) {
+  const message = String(error && (error.message || error) || "").toLowerCase();
+  return message.includes("jwt issued at future")
+    || message.includes("jwt issued at")
+    || message.includes("invalid jwt")
+    || message.includes("token is expired")
+    || message.includes("jwt expired")
+    || message.includes("unauthorized")
+    || message.includes("not authenticated");
+}
+
+function disableSupabase(reason) {
+  if (!supabase) return false;
+  console.warn(`[supabase] remote sync disabled: ${reason}`);
+  supabase = null;
+  return true;
+}
+
 if (supabaseUrl && supabaseKey) {
   try {
     supabase = createClient(supabaseUrl, supabaseKey);
@@ -566,21 +584,33 @@ async function saveToSupabase(resource, value) {
     return false;
   }
 }
-(async () => {
-    console.log("Testing Supabase connection...");
+async function checkSupabaseConnection() {
+  if (!supabase) return false;
 
-    const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .limit(1);
-
+  try {
+    const { error } = await supabase.from("products").select("id").limit(1);
     if (error) {
-        console.error("Supabase Error:", error);
-    } else {
-        console.log("Supabase Connected Successfully!");
-        console.log(data);
+      const message = String(error.message || error || "");
+      if (isSupabaseAuthError(error)) {
+        disableSupabase(`JWT time mismatch or auth rejection (${message})`);
+        return false;
+      }
+      console.warn("[supabase] connection check failed; continuing in local mode.", message);
+      return false;
     }
-})();
+    console.log("[supabase] connected successfully.");
+    return true;
+  } catch (error) {
+    const message = String(error && (error.message || error) || "");
+    if (isSupabaseAuthError(error)) {
+      disableSupabase(`JWT time mismatch or auth rejection (${message})`);
+      return false;
+    }
+    console.warn("[supabase] connection check failed; continuing in local mode.", message);
+    return false;
+  }
+}
+
 http.createServer(async (req, res) => {
   const rawRequestPath = decodeURIComponent(String(req.url || '/'));
   if (rawRequestPath.includes('..')) {
@@ -717,6 +747,9 @@ http.createServer(async (req, res) => {
   fs.createReadStream(filePath).pipe(res);
 }).listen(PORT, async () => {
   console.log(`🚀 Shine Globe running on http://localhost:${PORT}`);
+
+  await checkSupabaseConnection();
+
   const initialSeed = getSeedData();
   for (const resource of ["products", "categories", "orders", "customers", "settings"]) {
     const filePath = path.join(DATA_DIR, RESOURCE_FILES[resource] || `${resource}.json`);

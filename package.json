@@ -3,15 +3,12 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "fix:missing-images": "node scripts/fix-products-missing-images.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.8",
-<<<<<<< HEAD
     "dotenv": "^17.4.2",
     "formidable": "^3.5.4"
-=======
-    "dotenv": "^17.4.2"
->>>>>>> 979b52c (Add Database)
   }
 }

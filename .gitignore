@@ -1,4 +1,6 @@
 .env
+.env.*
+!.env.example
 node_modules/
 assets/data/products.json.bak*
 assets/data/products.json.repair*
