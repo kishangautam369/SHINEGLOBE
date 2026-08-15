@@ -14,13 +14,13 @@
     "featured": false,
     "parent": "",
     "subCategories": [
-      "Plates",
       "Bowls",
       "Cups",
       "Cutlery",
       "Napkins",
-      "Packaging"
+      "Packaging",
+      "Plates"
     ],
-    "created": "2026-08-15"
+    "created": "2026-08-15T00:00:00"
   }
 ]

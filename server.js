@@ -812,8 +812,11 @@ http.createServer(async (req, res) => {
       const remoteValue = await loadFromSupabase(resource);
 
       if (resource === "products") {
-        const normalized = normalizeProductList(Array.isArray(remoteValue) ? remoteValue : localProducts);
-        const value = normalized.length ? normalized : localProducts;
+        const normalizedLocal = normalizeProductList(localProducts);
+        const normalizedRemote = normalizeProductList(Array.isArray(remoteValue) ? remoteValue : normalizedLocal);
+        const localUniqueSubs = [...new Set(normalizedLocal.filter(Boolean).map(product => String(product.subcategory || '').trim()).filter(Boolean))].length;
+        const remoteUniqueSubs = [...new Set(normalizedRemote.filter(Boolean).map(product => String(product.subcategory || '').trim()).filter(Boolean))].length;
+        const value = (remoteUniqueSubs > 0 && remoteUniqueSubs >= localUniqueSubs) ? normalizedRemote : normalizedLocal;
         saveResource(resource, value);
         return sendJson(res, 200, value);
       }
@@ -821,7 +824,17 @@ http.createServer(async (req, res) => {
       if (resource === "categories") {
         const normalizedLocal = normalizeCategoryCollection(Array.isArray(localValue) ? localValue : [], localProducts);
         const normalizedRemote = normalizeCategoryCollection(Array.isArray(remoteValue) ? remoteValue : normalizedLocal, localProducts);
-        const value = normalizedRemote.length ? normalizedRemote : normalizedLocal;
+        const localUniqueSubs = new Set(
+          (normalizedLocal.flatMap(cat => Array.isArray(cat.subCategories) ? cat.subCategories : [])
+            .map(sub => String(sub).trim())
+            .filter(Boolean))
+        ).size;
+        const remoteUniqueSubs = new Set(
+          (normalizedRemote.flatMap(cat => Array.isArray(cat.subCategories) ? cat.subCategories : [])
+            .map(sub => String(sub).trim())
+            .filter(Boolean))
+        ).size;
+        const value = (remoteUniqueSubs > 0 && remoteUniqueSubs >= localUniqueSubs) ? normalizedRemote : normalizedLocal;
         saveResource(resource, value);
         return sendJson(res, 200, value);
       }
@@ -887,6 +900,53 @@ http.createServer(async (req, res) => {
       : (initialSeed[resource] ?? (resource === "categories" ? buildCategoriesFromProducts(initialSeed.products) : fallbackValue));
 
     const remoteValue = await loadFromSupabase(resource);
+    if (resource === "products") {
+      const localProducts = normalizeProductList(Array.isArray(localValue) ? localValue : []);
+      const remoteProducts = normalizeProductList(Array.isArray(remoteValue) ? remoteValue : []);
+      const localUnique = new Set(localProducts.map(product => String(product.subcategory || '').trim()).filter(Boolean)).size;
+      const remoteUnique = new Set(remoteProducts.map(product => String(product.subcategory || '').trim()).filter(Boolean)).size;
+      const chosen = remoteUnique > 0 && remoteUnique >= localUnique ? remoteProducts : localProducts;
+      saveResource(resource, chosen);
+      if (remoteUnique >= localUnique) {
+        console.log(`[sync] Loaded ${resource} from Supabase and updated local file.`);
+      } else {
+        console.log(`[sync] Kept the richer local ${resource} catalog and refreshed the file.`);
+        if (supabase) {
+          await saveToSupabase(resource, chosen);
+          console.log(`[sync] Pushed repaired local ${resource} data to Supabase.`);
+        }
+      }
+      continue;
+    }
+
+    if (resource === "categories") {
+      const localProducts = normalizeProductList(Array.isArray(localValue) ? localValue : []);
+      const localCategories = normalizeCategoryCollection(Array.isArray(localValue) ? localValue : [], localProducts);
+      const remoteCategories = normalizeCategoryCollection(Array.isArray(remoteValue) ? remoteValue : localCategories, localProducts);
+      const localUnique = new Set(
+        (localCategories.flatMap(cat => Array.isArray(cat.subCategories) ? cat.subCategories : [])
+          .map(sub => String(sub).trim())
+          .filter(Boolean))
+      ).size;
+      const remoteUnique = new Set(
+        (remoteCategories.flatMap(cat => Array.isArray(cat.subCategories) ? cat.subCategories : [])
+          .map(sub => String(sub).trim())
+          .filter(Boolean))
+      ).size;
+      const chosen = remoteUnique > 0 && remoteUnique >= localUnique ? remoteCategories : localCategories;
+      saveResource(resource, chosen);
+      if (remoteUnique >= localUnique) {
+        console.log(`[sync] Loaded ${resource} from Supabase and updated local file.`);
+      } else {
+        console.log(`[sync] Kept the richer local ${resource} catalog and refreshed the file.`);
+        if (supabase) {
+          await saveToSupabase(resource, chosen);
+          console.log(`[sync] Pushed repaired local ${resource} data to Supabase.`);
+        }
+      }
+      continue;
+    }
+
     if (remoteValue !== null) {
       saveResource(resource, remoteValue);
       console.log(`[sync] Loaded ${resource} from Supabase and updated local file.`);
