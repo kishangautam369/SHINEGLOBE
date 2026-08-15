@@ -421,22 +421,25 @@ async function uploadToSupabaseStorage(filePath, originalName) {
   }
 }
 
-function normalizeProductSubcategory(categoryName, value) {
+function normalizeProductSubcategory(categoryName, value, index = 0) {
   const category = String(categoryName || "").trim();
   const text = String(value ?? "").trim();
   if (text) return text;
   const defaultSubs = getDefaultSubCategories(category);
-  return Array.isArray(defaultSubs) && defaultSubs.length ? defaultSubs[0] : "";
+  if (Array.isArray(defaultSubs) && defaultSubs.length) {
+    return defaultSubs[index % defaultSubs.length];
+  }
+  return "";
 }
 
 function normalizeProductList(list) {
-  return (Array.isArray(list) ? list : []).map(product => {
+  return (Array.isArray(list) ? list : []).map((product, index) => {
     if (!product || typeof product !== "object") return product;
     const categoryName = String(product.category || "").trim();
     return {
       ...product,
       category: categoryName,
-      subcategory: normalizeProductSubcategory(categoryName, product.subcategory ?? product.subCategory ?? product.sub_category ?? "")
+      subcategory: normalizeProductSubcategory(categoryName, product.subcategory ?? product.subCategory ?? product.sub_category ?? "", index)
     };
   });
 }

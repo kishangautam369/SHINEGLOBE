@@ -21,9 +21,16 @@ const normalizedProducts = products.map((product, index) => {
   return { ...product, category, subcategory };
 });
 
-fs.writeFileSync(productsPath, JSON.stringify(normalizedProducts, null, 2));
+const roundRobinProducts = normalizedProducts.map((product, index) => {
+  const category = String(product.category || 'Disposable Items').trim() || 'Disposable Items';
+  const list = DEFAULT_SUBCATEGORY_MAP[category] || [];
+  if (!list.length) return product;
+  return { ...product, subcategory: list[index % list.length] };
+});
 
-const categories = [...new Set(normalizedProducts.map((product) => product.category))].map((name, idx) => ({
+fs.writeFileSync(productsPath, JSON.stringify(roundRobinProducts, null, 2));
+
+const categories = [...new Set(roundRobinProducts.map((product) => product.category))].map((name, idx) => ({
   id: idx + 1,
   name,
   slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),

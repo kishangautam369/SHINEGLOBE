@@ -1,122 +1,26 @@
 [
   {
-    "id": 3,
+    "id": 1,
     "name": "Disposable Items",
     "slug": "disposable-items",
-    "desc": "Disposable collection at Shine Globe.",
-    "icon": "fa-truck",
-    "color": "#F59E0B",
-    "banner": "https://media.istockphoto.com/id/1288466024/photo/single-use-plastics-and-eco-friendly-alternatives.jpg?s=1024x1024&w=is&k=20&c=oA-MJ0v45EqUEyo8lSRzQQvoJGijSvXh0HrrVTXgel8=",
+    "desc": "Disposable Items collection at Shine Globe.",
+    "icon": "fa-tag",
+    "color": "#2563EB",
+    "banner": "",
     "seoTitle": "Disposable Items — Shine Globe",
-    "seoDesc": "Disposable Items at Shine Globe.",
-    "keywords": "disposable items, food disposables, packaging supplies, eco-friendly disposables, hygiene products, catering supplies, Shine Globe",
+    "seoDesc": "Disposable Items collection at Shine Globe.",
+    "keywords": "Disposable Items",
     "active": true,
     "featured": false,
     "parent": "",
     "subCategories": [
+      "Plates",
       "Bowls",
       "Cups",
       "Cutlery",
       "Napkins",
-      "Packaging",
-      "Plates"
+      "Packaging"
     ],
-    "created": "2026-08-01T00:00:00"
-  },
-  {
-    "id": 4,
-    "name": "Hygiene Products",
-    "slug": "hygiene-products",
-    "desc": "Hygiene Products collection at Shine Globe.",
-    "icon": "fa-tag",
-    "color": "#2563EB",
-    "banner": "",
-    "seoTitle": "Hygiene Products — Shine Globe",
-    "seoDesc": "Hygiene Products collection at Shine Globe.",
-    "keywords": "Hygiene Products",
-    "active": true,
-    "featured": false,
-    "parent": "",
-    "subCategories": [
-      "Accessories",
-      "Hand Sanitizers",
-      "Soaps",
-      "Tissues",
-      "Toilet Rolls",
-      "Wipes"
-    ],
-    "created": "2026-08-01T00:00:00"
-  },
-  {
-    "id": 5,
-    "name": "Household",
-    "slug": "household",
-    "desc": "Household collection at Shine Globe.",
-    "icon": "fa-tag",
-    "color": "#2563EB",
-    "banner": "",
-    "seoTitle": "Household — Shine Globe",
-    "seoDesc": "Household collection at Shine Globe.",
-    "keywords": "Household",
-    "active": true,
-    "featured": false,
-    "parent": "",
-    "subCategories": [
-      "Air Care",
-      "Bathroom",
-      "Cleaning",
-      "Kitchen",
-      "Laundry",
-      "Storage"
-    ],
-    "created": "2026-08-01T00:00:00"
-  },
-  {
-    "id": 6,
-    "name": "Packaging",
-    "slug": "packaging",
-    "desc": "Packaging collection at Shine Globe.",
-    "icon": "fa-tag",
-    "color": "#2563EB",
-    "banner": "",
-    "seoTitle": "Packaging — Shine Globe",
-    "seoDesc": "Packaging collection at Shine Globe.",
-    "keywords": "Packaging",
-    "active": true,
-    "featured": false,
-    "parent": "",
-    "subCategories": [
-      "Bags",
-      "Boxes",
-      "Labels",
-      "Shipping",
-      "Tape",
-      "Wraps"
-    ],
-    "created": "2026-08-01T00:00:00"
-  },
-  {
-    "id": 8,
-    "name": "Office Supplies",
-    "slug": "office-supplies",
-    "desc": "Office Supplies collection at Shine Globe.",
-    "icon": "fa-tag",
-    "color": "#2563EB",
-    "banner": "",
-    "seoTitle": "Office Supplies — Shine Globe",
-    "seoDesc": "Office Supplies collection at Shine Globe.",
-    "keywords": "Office Supplies",
-    "active": true,
-    "featured": false,
-    "parent": "",
-    "subCategories": [
-      "Binders",
-      "Desk Accessories",
-      "Files",
-      "Paper",
-      "Pens",
-      "Stationery"
-    ],
-    "created": "2026-08-01T00:00:00"
+    "created": "2026-08-15"
   }
 ]

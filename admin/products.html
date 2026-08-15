@@ -95,20 +95,33 @@ let allProducts = [], page = 1, perPage = 8, currentFilters = {}, categoryOption
 function getCategorySubOptions(categoryName){
   const storedCats = ADMIN.store('admin_categories', []) || [];
   if(!categoryName) return [];
-  const parentCategory = storedCats.find(item => item && typeof item === 'object' && item.name === categoryName && !item.parent);
+  const seen = new Set();
+  const add = (value) => {
+    const clean = String(value || '').trim();
+    if (!clean) return;
+    const key = clean.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      return clean;
+    }
+    return null;
+  };
+
+  const categoryList = storedCats.filter(item => item && typeof item === 'object');
+  const parentCategory = categoryList.find(item => item.name === categoryName && !item.parent);
   const nestedSubs = Array.isArray(parentCategory?.subCategories)
-    ? parentCategory.subCategories.map(sub => (typeof sub === 'string' ? sub : (sub?.name || ''))).filter(Boolean)
+    ? parentCategory.subCategories.map(sub => (typeof sub === 'string' ? sub : (sub?.name || ''))).map(add).filter(Boolean)
     : [];
-  const directSubs = storedCats.filter(item => item && typeof item === 'object' && item.parent === categoryName)
-    .map(item => item.name)
-    .filter(Boolean);
-  return [...new Set([...nestedSubs, ...directSubs])];
+  const directSubs = categoryList.filter(item => item.parent === categoryName).map(item => item.name).map(add).filter(Boolean);
+  const productSubs = allProducts.filter(p => p.category === categoryName && String(p.subcategory || '').trim()).map(p => p.subcategory).map(add).filter(Boolean);
+
+  return [...new Set([...nestedSubs, ...directSubs, ...productSubs])].sort((a, b) => a.localeCompare(b));
 }
 
 function updateProductSubcategoryOptions(){
   const categoryName = document.getElementById('pf_category').value;
   const subSelect = document.getElementById('pf_subcategory');
-  const currentValue = subSelect.dataset.current || '';
+  const currentValue = String(subSelect.dataset.current || '').trim();
   const options = ['<option value="">No subcategory</option>'];
   const available = getCategorySubOptions(categoryName);
   available.forEach(sub => options.push(`<option value="${sub}">${sub}</option>`));
@@ -123,7 +136,7 @@ function updateProductCategoryFilters(){
   const available = getCategorySubOptions(categoryName);
   subFilter.innerHTML = ['<option value="">All Subcategories</option>', ...available.map(sub => `<option value="${sub}">${sub}</option>`)].join('');
   subFilter.disabled = !categoryName || !available.length;
-  if (!available.includes(subFilter.dataset.current || '')) {
+  if (!available.includes(String(subFilter.dataset.current || '').trim())) {
     subFilter.value = '';
     delete subFilter.dataset.current;
   }
