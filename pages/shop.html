@@ -114,6 +114,7 @@ function syncSubSelection(){
   }
   const valid = state.subcats.filter(sub => subs.some(item => item.name === sub));
   if(valid.length !== state.subcats.length) state.subcats = valid;
+  if(state.subcats.length && !subs.some(item => item.name === state.subcats[0])) state.subcats = [];
 }
 
 function bindFilters(){
@@ -244,9 +245,10 @@ function filtered(){
   const selectedSubCats = state.subcats.filter(Boolean);
 
   return currentProducts.filter(p => {
-    const inCategory = !selectedCategory || p.category === selectedCategory || (selectedCategory && p.category === selectedCategory);
-    const matchesSubcategory = !selectedCategory || !selectedSubCats.length || (selectedSubCats.includes(p.subcategory || '') || (!p.subcategory && selectedSubCats.length === 0));
+    const inCategory = !selectedCategory || p.category === selectedCategory;
     const categoryMatch = state.cats.length === 0 || state.cats.includes(p.category);
+    const hasSubFilters = selectedSubCats.length > 0;
+    const matchesSubcategory = !selectedCategory || !hasSubFilters || selectedSubCats.includes(p.subcategory || '') || (!p.subcategory && hasSubFilters);
 
     return categoryMatch &&
       inCategory &&

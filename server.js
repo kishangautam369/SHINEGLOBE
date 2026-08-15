@@ -232,23 +232,99 @@ function writeJsonFile(filePath, value) {
   fs.renameSync(tempPath, filePath);
 }
 
+const DEFAULT_SUBCATEGORY_MAP = {
+  "Disposable Items": ["Plates", "Bowls", "Cups", "Cutlery", "Napkins", "Packaging"],
+  "Hygiene Products": ["Soaps", "Hand Sanitizers", "Tissues", "Toilet Rolls", "Wipes", "Accessories"],
+  "Household": ["Laundry", "Cleaning", "Storage", "Kitchen", "Bathroom", "Air Care"],
+  "Packaging": ["Boxes", "Bags", "Wraps", "Tape", "Labels", "Shipping"],
+  "Office Supplies": ["Stationery", "Paper", "Pens", "Desk Accessories", "Files", "Binders"]
+};
+
+function getDefaultSubCategories(categoryName) {
+  const name = String(categoryName || "").trim();
+  return Array.isArray(DEFAULT_SUBCATEGORY_MAP[name]) ? DEFAULT_SUBCATEGORY_MAP[name] : [];
+}
+
 function buildCategoriesFromProducts(products) {
   const names = [...new Set((products || []).map(product => product.category).filter(Boolean))];
-  return names.map((name, index) => ({
-    id: index + 1,
-    name,
-    slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
-    desc: `${name} collection at Shine Globe.`,
-    icon: "fa-tag",
-    color: "#2563EB",
-    banner: "",
-    seoTitle: `${name} — Shine Globe`,
-    seoDesc: `${name} collection at Shine Globe.`,
-    keywords: name,
-    active: true,
-    featured: false,
-    created: new Date().toISOString().slice(0, 10)
-  }));
+  const subcategoryMap = {};
+
+  (products || []).forEach(product => {
+    const categoryName = String(product?.category || "").trim();
+    const subcategoryName = String(product?.subcategory ?? product?.subCategory ?? product?.sub_category ?? "").trim();
+    if (!categoryName || !subcategoryName) return;
+    if (!subcategoryMap[categoryName]) subcategoryMap[categoryName] = new Set();
+    subcategoryMap[categoryName].add(subcategoryName);
+  });
+
+  return names.map((name, index) => {
+    const derivedSubCats = [...new Set([...(getDefaultSubCategories(name) || []), ...(subcategoryMap[name] || [])])].sort((a, b) => a.localeCompare(b));
+    return {
+      id: index + 1,
+      name,
+      slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+      desc: `${name} collection at Shine Globe.`,
+      icon: "fa-tag",
+      color: "#2563EB",
+      banner: "",
+      seoTitle: `${name} — Shine Globe`,
+      seoDesc: `${name} collection at Shine Globe.`,
+      keywords: name,
+      active: true,
+      featured: false,
+      parent: "",
+      subCategories: derivedSubCats,
+      created: new Date().toISOString().slice(0, 10)
+    };
+  });
+}
+
+function normalizeCategoryCollection(list, products) {
+  const productCategories = buildCategoriesFromProducts(products);
+  const byName = new Map();
+
+  (Array.isArray(list) ? list : []).forEach(category => {
+    if (!category || typeof category !== "object") return;
+    const name = String(category.name || "").trim();
+    if (!name) return;
+    const normalized = {
+      ...category,
+      name,
+      parent: category.parent || "",
+      subCategories: Array.isArray(category.subCategories)
+        ? category.subCategories
+        : (Array.isArray(category.sub_categories) ? category.sub_categories : [])
+    };
+    byName.set(name, normalized);
+  });
+
+  const mergedNames = [...new Set([...byName.keys(), ...productCategories.map(cat => cat.name)])];
+  return mergedNames.map((name, index) => {
+    const existing = byName.get(name) || {};
+    const derived = productCategories.find(cat => cat.name === name) || {};
+    const directSubs = Array.isArray(existing.subCategories)
+      ? existing.subCategories.map(sub => typeof sub === "string" ? sub : (sub?.name || "")).filter(Boolean)
+      : [];
+    const productSubs = Array.isArray(derived.subCategories) ? derived.subCategories : [];
+    const fallbackSubs = getDefaultSubCategories(name);
+    const uniqSubs = [...new Set([...directSubs, ...productSubs, ...fallbackSubs])].sort((a, b) => a.localeCompare(b));
+
+    return {
+      ...derived,
+      ...existing,
+      id: existing.id ?? derived.id ?? index + 1,
+      name,
+      slug: existing.slug || derived.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+      parent: existing.parent || "",
+      active: existing.active !== false,
+      featured: !!(existing.featured || derived.featured),
+      subCategories: uniqSubs,
+      desc: existing.desc || derived.desc || `${name} collection at Shine Globe.`,
+      seoTitle: existing.seoTitle || derived.seoTitle || `${name} — Shine Globe`,
+      seoDesc: existing.seoDesc || derived.seoDesc || `${name} collection at Shine Globe.`,
+      created: existing.created || derived.created || new Date().toISOString().slice(0, 10)
+    };
+  });
 }
 
 function getSeedData() {
@@ -272,12 +348,22 @@ function getSeedData() {
 
 function loadResource(resource) {
   const filePath = path.join(DATA_DIR, RESOURCE_FILES[resource] || `${resource}.json`);
+  const fallback = getSeedData()[resource] ?? (resource === "categories" ? buildCategoriesFromProducts(getSeedData().products) : resource === "settings" ? {} : []);
+
   if (!fs.existsSync(filePath)) {
-    const seed = getSeedData()[resource] ?? (resource === "categories" ? buildCategoriesFromProducts(getSeedData().products) : resource === "settings" ? {} : []);
-    writeJsonFile(filePath, seed);
-    return seed;
+    writeJsonFile(filePath, fallback);
+    return fallback;
   }
-  return readJsonFile(filePath, resource === "settings" ? {} : []);
+
+  const loaded = readJsonFile(filePath, resource === "settings" ? {} : []);
+  if (resource === "categories") {
+    const categories = normalizeCategoryCollection(Array.isArray(loaded) ? loaded : fallback, getSeedData().products);
+    const needsWrite = JSON.stringify(categories) !== JSON.stringify(loaded);
+    if (needsWrite) writeJsonFile(filePath, categories);
+    return categories;
+  }
+
+  return loaded;
 }
 
 function saveResource(resource, value) {
@@ -335,24 +421,45 @@ async function uploadToSupabaseStorage(filePath, originalName) {
   }
 }
 
+function normalizeProductSubcategory(categoryName, value) {
+  const category = String(categoryName || "").trim();
+  const text = String(value ?? "").trim();
+  if (text) return text;
+  const defaultSubs = getDefaultSubCategories(category);
+  return Array.isArray(defaultSubs) && defaultSubs.length ? defaultSubs[0] : "";
+}
+
+function normalizeProductList(list) {
+  return (Array.isArray(list) ? list : []).map(product => {
+    if (!product || typeof product !== "object") return product;
+    const categoryName = String(product.category || "").trim();
+    return {
+      ...product,
+      category: categoryName,
+      subcategory: normalizeProductSubcategory(categoryName, product.subcategory ?? product.subCategory ?? product.sub_category ?? "")
+    };
+  });
+}
+
 function normalizeCategoryForDb(category) {
   if (!category || typeof category !== "object") return category;
+  const normalized = normalizeCategoryCollection([category], normalizeProductList(getSeedData().products))[0] || category;
   return {
-    id: category.id,
-    name: category.name ?? "",
-    slug: category.slug ?? "",
-    description: category.desc ?? category.description ?? null,
-    icon: category.icon ?? null,
-    color: category.color ?? null,
-    banner: category.banner ?? null,
-    seo_title: category.seoTitle ?? null,
-    seo_description: category.seoDesc ?? null,
-    keywords: category.keywords ?? null,
-    active: category.active !== false,
-    featured: !!category.featured,
-    parent: category.parent ?? null,
-    sub_categories: Array.isArray(category.subCategories) ? category.subCategories : [],
-    created_at: category.created ?? new Date().toISOString().slice(0, 10)
+    id: normalized.id,
+    name: normalized.name ?? "",
+    slug: normalized.slug ?? "",
+    description: normalized.desc ?? normalized.description ?? null,
+    icon: normalized.icon ?? null,
+    color: normalized.color ?? null,
+    banner: normalized.banner ?? null,
+    seo_title: normalized.seoTitle ?? null,
+    seo_description: normalized.seoDesc ?? null,
+    keywords: normalized.keywords ?? null,
+    active: normalized.active !== false,
+    featured: !!normalized.featured,
+    parent: normalized.parent ?? null,
+    sub_categories: Array.isArray(normalized.subCategories) ? normalized.subCategories : [],
+    created_at: normalized.created ?? new Date().toISOString().slice(0, 10)
   };
 }
 
@@ -392,8 +499,8 @@ function normalizeSettingsForDb(settings) {
 
 function normalizeProductForDb(product) {
   if (!product || typeof product !== "object") return product;
-  const categoryName = product.category ?? "";
-  const subcategoryName = product.subcategory ?? product.subCategory ?? product.sub_category ?? "";
+  const categoryName = String(product.category ?? "").trim();
+  const subcategoryName = normalizeProductSubcategory(categoryName, product.subcategory ?? product.subCategory ?? product.sub_category ?? "");
   return {
     id: product.id,
     name: product.name ?? "",
@@ -413,11 +520,12 @@ function normalizeProductForDb(product) {
 
 function normalizeProductFromDb(row) {
   if (!row || typeof row !== "object") return row;
+  const categoryName = String(row.category ?? "").trim();
   return {
     id: row.id,
     name: row.name,
-    category: row.category,
-    subcategory: row.subcategory ?? row.subCategory ?? row.sub_category ?? "",
+    category: categoryName,
+    subcategory: normalizeProductSubcategory(categoryName, row.subcategory ?? row.subCategory ?? row.sub_category ?? ""),
     brand: row.brand,
     price: Number(row.price ?? 0),
     oldPrice: row.oldPrice ?? null,
@@ -564,7 +672,7 @@ async function saveToSupabase(resource, value) {
 
     if (resource === "categories") {
       const rows = Array.isArray(value) ? value : [value];
-      const normalized = rows.map(normalizeCategoryForDb);
+      const normalized = rows.map(item => normalizeCategoryForDb(item));
       const { error: deleteAllError } = await supabase.from("categories").delete().neq("id", 0);
       if (deleteAllError) throw deleteAllError;
       return await trySupabaseUpsert("categories", normalized);
@@ -697,7 +805,24 @@ http.createServer(async (req, res) => {
 
     if (req.method === "GET") {
       const localValue = loadResource(resource);
-      const remoteValue = resource === "settings" ? await loadFromSupabase(resource) : await loadFromSupabase(resource);
+      const localProducts = normalizeProductList(Array.isArray(localValue) ? localValue : []);
+      const remoteValue = await loadFromSupabase(resource);
+
+      if (resource === "products") {
+        const normalized = normalizeProductList(Array.isArray(remoteValue) ? remoteValue : localProducts);
+        const value = normalized.length ? normalized : localProducts;
+        saveResource(resource, value);
+        return sendJson(res, 200, value);
+      }
+
+      if (resource === "categories") {
+        const normalizedLocal = normalizeCategoryCollection(Array.isArray(localValue) ? localValue : [], localProducts);
+        const normalizedRemote = normalizeCategoryCollection(Array.isArray(remoteValue) ? remoteValue : normalizedLocal, localProducts);
+        const value = normalizedRemote.length ? normalizedRemote : normalizedLocal;
+        saveResource(resource, value);
+        return sendJson(res, 200, value);
+      }
+
       const value = remoteValue ?? localValue;
       if (value !== null && value !== undefined) {
         saveResource(resource, value);

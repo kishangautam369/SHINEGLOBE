@@ -13,7 +13,14 @@
     "active": true,
     "featured": false,
     "parent": "",
-    "subCategories": [],
+    "subCategories": [
+      "Bowls",
+      "Cups",
+      "Cutlery",
+      "Napkins",
+      "Packaging",
+      "Plates"
+    ],
     "created": "2026-08-01T00:00:00"
   },
   {
@@ -30,7 +37,14 @@
     "active": true,
     "featured": false,
     "parent": "",
-    "subCategories": [],
+    "subCategories": [
+      "Accessories",
+      "Hand Sanitizers",
+      "Soaps",
+      "Tissues",
+      "Toilet Rolls",
+      "Wipes"
+    ],
     "created": "2026-08-01T00:00:00"
   },
   {
@@ -47,7 +61,14 @@
     "active": true,
     "featured": false,
     "parent": "",
-    "subCategories": [],
+    "subCategories": [
+      "Air Care",
+      "Bathroom",
+      "Cleaning",
+      "Kitchen",
+      "Laundry",
+      "Storage"
+    ],
     "created": "2026-08-01T00:00:00"
   },
   {
@@ -64,7 +85,14 @@
     "active": true,
     "featured": false,
     "parent": "",
-    "subCategories": [],
+    "subCategories": [
+      "Bags",
+      "Boxes",
+      "Labels",
+      "Shipping",
+      "Tape",
+      "Wraps"
+    ],
     "created": "2026-08-01T00:00:00"
   },
   {
@@ -81,7 +109,14 @@
     "active": true,
     "featured": false,
     "parent": "",
-    "subCategories": [],
+    "subCategories": [
+      "Binders",
+      "Desk Accessories",
+      "Files",
+      "Paper",
+      "Pens",
+      "Stationery"
+    ],
     "created": "2026-08-01T00:00:00"
   }
 ]

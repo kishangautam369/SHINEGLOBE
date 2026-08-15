@@ -177,9 +177,10 @@ const SG = (() => {
       if (!category || typeof category !== 'object') return null;
       const name = String(category.name || category.title || '').trim();
       if (!name) return null;
-      const normalizedSubCats = Array.isArray(category.subCategories)
-        ? category.subCategories.map((item, subIdx) => normalizeSubCategoryEntry(name, item, subIdx)).filter(Boolean)
-        : [];
+      const rawSubCats = Array.isArray(category.subCategories)
+        ? category.subCategories
+        : (Array.isArray(category.sub_categories) ? category.sub_categories : []);
+      const normalizedSubCats = rawSubCats.map((item, subIdx) => normalizeSubCategoryEntry(name, item, subIdx)).filter(Boolean);
       return {
         ...category,
         id: category.id ?? idx + 1,
@@ -216,21 +217,37 @@ const SG = (() => {
     const parentValue = String(parentName || '').trim();
     if(!parentValue) return [];
     const list = [];
+    const seen = new Set();
     const categories = normalizeCatalogCategories(CATEGORIES.length ? CATEGORIES : []);
+
     categories.forEach(cat => {
       if (cat.parent === parentValue) {
-        list.push({ ...cat, parent: cat.parent || parentValue });
+        const entry = { ...cat, parent: cat.parent || parentValue };
+        if (entry.name) {
+          const key = `${(entry.parent || '').toLowerCase()}|${entry.name.toLowerCase()}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            list.push(entry);
+          }
+        }
         return;
       }
+
       if (cat.name === parentValue) {
         const nested = Array.isArray(cat.subCategories) ? cat.subCategories : [];
         nested.forEach(sub => {
-          if (sub && typeof sub === 'object') list.push({ ...sub, parent: sub.parent || parentValue });
-          else if (typeof sub === 'string') list.push({ id: `${cat.name}-${sub}`, name: sub.trim(), parent: parentValue, active: true });
+          const normalized = sub && typeof sub === 'object' ? { ...sub, parent: sub.parent || parentValue } : { id: `${cat.name}-${sub}`, name: String(sub || '').trim(), parent: parentValue, active: true };
+          if (!normalized.name) return;
+          const key = `${(normalized.parent || '').toLowerCase()}|${normalized.name.toLowerCase()}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            list.push(normalized);
+          }
         });
       }
     });
-    return list.filter((item, index, arr) => item && item.name && arr.findIndex(candidate => candidate && candidate.name === item.name && (candidate.parent || '') === (item.parent || '')) === index);
+
+    return list.filter(item => item && item.name).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   }
 
   function getCategoryOptions(){

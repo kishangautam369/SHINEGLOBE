@@ -26,6 +26,7 @@
       <div class="a-card p-3 mb-3 d-flex flex-wrap gap-2 align-items-center">
         <div class="a-search"><i class="fa-solid fa-magnifying-glass text-muted"></i><input id="prodSearch" placeholder="Search products..."></div>
         <select class="form-select form-select-sm" style="width:auto;" id="prodCatFilter"><option value="">All Categories</option></select>
+        <select class="form-select form-select-sm" style="width:auto;" id="prodSubCatFilter" disabled><option value="">All Subcategories</option></select>
         <select class="form-select form-select-sm" style="width:auto;" id="prodStatusFilter">
           <option value="">All Status</option><option value="active">Active</option><option value="disabled">Disabled</option>
         </select>
@@ -95,10 +96,13 @@ function getCategorySubOptions(categoryName){
   const storedCats = ADMIN.store('admin_categories', []) || [];
   if(!categoryName) return [];
   const parentCategory = storedCats.find(item => item && typeof item === 'object' && item.name === categoryName && !item.parent);
-  if(parentCategory && Array.isArray(parentCategory.subCategories) && parentCategory.subCategories.length) {
-    return parentCategory.subCategories.map(sub => (typeof sub === 'string' ? sub : (sub.name || ''))).filter(Boolean);
-  }
-  return storedCats.filter(item => item && typeof item === 'object' && item.parent === categoryName).map(item => item.name).filter(Boolean);
+  const nestedSubs = Array.isArray(parentCategory?.subCategories)
+    ? parentCategory.subCategories.map(sub => (typeof sub === 'string' ? sub : (sub?.name || ''))).filter(Boolean)
+    : [];
+  const directSubs = storedCats.filter(item => item && typeof item === 'object' && item.parent === categoryName)
+    .map(item => item.name)
+    .filter(Boolean);
+  return [...new Set([...nestedSubs, ...directSubs])];
 }
 
 function updateProductSubcategoryOptions(){
@@ -113,6 +117,18 @@ function updateProductSubcategoryOptions(){
   subSelect.dataset.current = subSelect.value;
 }
 
+function updateProductCategoryFilters(){
+  const categoryName = document.getElementById('prodCatFilter').value;
+  const subFilter = document.getElementById('prodSubCatFilter');
+  const available = getCategorySubOptions(categoryName);
+  subFilter.innerHTML = ['<option value="">All Subcategories</option>', ...available.map(sub => `<option value="${sub}">${sub}</option>`)].join('');
+  subFilter.disabled = !categoryName || !available.length;
+  if (!available.includes(subFilter.dataset.current || '')) {
+    subFilter.value = '';
+    delete subFilter.dataset.current;
+  }
+}
+
 document.addEventListener('admin:dataReady', () => {
   allProducts = ADMIN.store('admin_products', []);
   const storedCats = ADMIN.store('admin_categories', []) || [];
@@ -124,11 +140,13 @@ document.addEventListener('admin:dataReady', () => {
   document.getElementById('prodCatFilter').innerHTML += categoryOptions.map(c=>`<option value="${c.name}">${c.label}</option>`).join('');
   document.getElementById('pf_category').innerHTML = ['<option value="">Select category</option>', ...categoryOptions.map(c=>`<option value="${c.name}">${c.label}</option>`)].join('');
   updateCategoryLinkButton();
+  updateProductCategoryFilters();
   updateProductSubcategoryOptions();
   render();
 
   document.getElementById('prodSearch').addEventListener('input', () => { page=1; render(); });
-  document.getElementById('prodCatFilter').addEventListener('change', () => { page=1; render(); });
+  document.getElementById('prodCatFilter').addEventListener('change', () => { updateProductCategoryFilters(); page=1; render(); });
+  document.getElementById('prodSubCatFilter').addEventListener('change', () => { page=1; render(); });
   document.getElementById('prodStatusFilter').addEventListener('change', () => { page=1; render(); });
   document.getElementById('pf_category').addEventListener('change', () => { updateCategoryLinkButton(); updateProductSubcategoryOptions(); });
   document.getElementById('selectAll').addEventListener('change', function(){
@@ -164,10 +182,12 @@ function openCategoryPage(categoryName){
 function filteredList(){
   const q = document.getElementById('prodSearch').value.toLowerCase();
   const cat = document.getElementById('prodCatFilter').value;
+  const subCat = document.getElementById('prodSubCatFilter').value;
   const status = document.getElementById('prodStatusFilter').value;
   return allProducts.filter(p =>
     (!q || p.name.toLowerCase().includes(q)) &&
     (!cat || p.category===cat) &&
+    (!subCat || p.subcategory===subCat) &&
     (!status || (status==='active' ? p.active!==false : p.active===false))
   );
 }
